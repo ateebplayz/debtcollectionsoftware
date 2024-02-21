@@ -1,0 +1,5 @@
+const config = {
+    jwtKey:'JWT SIGN KEY TOKEN THINGY HERE',
+    mongoUri: 'MONGODB CONFIGURATION URL HERE'
+}
+export default config
