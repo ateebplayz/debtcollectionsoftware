@@ -1,11 +1,26 @@
 const axios = require('axios');
+const fs = require('fs');
 
 const sendData = async () => {
   try {
-    const response = await axios.post('http://localhost:8080/api/companies/delete', {
-      token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NWQzOWZiMTE5MzBhMzZjNTUyMWVjM2MiLCJ1c2VybmFtZSI6ImF0ZWVidGhlcHJvIiwicGFzc3dvcmQiOiJNaW5lY3JhZnRnbzA5MjEiLCJpYXQiOjE3MDg0Mjc0NjF9.mU9oF2N9cPGnLlTC2XbrRurKdudRp7Vg7si3-6C7ULg',
-      cr: "a",
+    // Read the file 'package.json'
+    const fileContent = fs.readFileSync('package.json');
+
+    // Convert file content to a Blob
+    const fileBlob = new Blob([fileContent], { type: 'application/json' });
+
+    // Construct form data with the file Blob
+    const formData = new FormData();
+    formData.append('file', fileBlob, 'package.json'); // Ensure the field name is 'file'
+
+    // Make a POST request to upload the file
+    const response = await axios.post('http://localhost:8080/api/files/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        // Add any other headers if needed
+      },
     });
+
     console.log(response.data);
   } catch (error) {
     console.error('Error:', error.message);
