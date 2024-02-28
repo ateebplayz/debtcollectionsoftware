@@ -5,8 +5,13 @@ import { useRouter } from "next/navigation"
 import Company from "@/schemas/company"
 import axios from "axios"
 
+function sleep (ms: number) {
+  return new Promise((res) => setTimeout(res, ms))
+}
 function CompaniesPage() {
-  const [file, setFile] = React.useState<File>()
+  const [disabled, setDisabled] = React.useState(false)
+  const [companies, setCompanies] = React.useState<Array<Company>>([])
+  const [shake, setShake] = React.useState(false)
   const [company, setCompany] = React.useState<Company>({
     name: "",
     cr: "",
@@ -36,127 +41,67 @@ function CompaniesPage() {
       case 'person':
         companyTemp.contact.person = e.target.value
         break;
-      case 'attachment':if (e.target.files && e.target.files[0]) {
-        const selectedFile = e.target.files[0];
-        const formData = new FormData();
-        formData.append("files", selectedFile);
-      
-        fetch("http://localhost:8080/api/files/upload", {
-          method: 'POST', 
-          body: formData,
-          // Don't set Content-Type explicitly, FormData handles it automatically
-        })
-        .then((res) => console.log(res))
-        .catch((err) => console.error(err));
-      }
-      
-        console.log(FormData)
+      case 'attachment':
+        if (e.target.files && e.target.files[0]) {
+          const selectedFile = e.target.files[0];
+          const formData = new FormData();
+          formData.append("files", selectedFile);
+        
+          const response = await axios.post('http://localhost:8080/api/files/upload', formData)
+          console.log(response.data.data)
+          companyTemp.attachment = response.data.data
+        }
+        console.log(company)
         break;
     }
     setCompany(companyTemp)
     console.log(company)
   }
-  const router = useRouter()
+  const handleCreation = async () => {
+    try {
+      setDisabled(true)
+      const response = await axios.post('http://localhost:8080/api/companies/create', {company: company, token: localStorage.getItem('token')})
+      console.log(response.data)
+      if(response.data.code == 200) {
+        handleBtnClicks(1)
+      } else {
+        setShake(true)
+        await sleep(500)
+        setShake(false)
+      }
+    } catch {
+      console.error
+    }
+    setDisabled(false)
+  }
   const handleBtnClicks = (btn: number) => {
     switch (btn) {
       case 0:
         break
       case 1:
+        (document.getElementById('company_modal') as HTMLDialogElement)?.close()
         break;
     }
   }
-  const companies = [
-    {
-      name: 'Company 1',
-      cr: 'CR12345678',
-      address: '123 Address Street X Muscat, Oman',
-      contact: '+97182648238',
-    },
-    {
-      name: 'Company 2',
-      cr: 'CR12345678',
-      address: '123 Address Street X Muscat, Oman',
-      contact: '+97182648238',
-    },
-    {
-      name: 'Company 3',
-      cr: 'CR12345678',
-      address: '123 Address Street X Muscat, Oman',
-      contact: '+97182648238',
-    },
-    {
-      name: 'Company 4',
-      cr: 'CR12345678',
-      address: '123 Address Street X Muscat, Oman',
-      contact: '+97182648238',
-    },
-    {
-      name: 'Company 5',
-      cr: 'CR12345678',
-      address: '123 Address Street X Muscat, Oman',
-      contact: '+97182648238',
-    },
-    {
-      name: 'Company 6',
-      cr: 'CR12345678',
-      address: '123 Address Street X Muscat, Oman',
-      contact: '+97182648238',
-    },
-    {
-      name: 'Company 7',
-      cr: 'CR12345678',
-      address: '123 Address Street X Muscat, Oman',
-      contact: '+97182648238',
-    },
-    {
-      name: 'Company 8',
-      cr: 'CR12345678',
-      address: '123 Address Street X Muscat, Oman',
-      contact: '+97182648238',
-    },
-    {
-      name: 'Company 9',
-      cr: 'CR12345678',
-      address: '123 Address Street X Muscat, Oman',
-      contact: '+97182648238',
-    },
-    {
-      name: 'Company 10',
-      cr: 'CR12345678',
-      address: '123 Address Street X Muscat, Oman',
-      contact: '+97182648238',
-    },
-    {
-      name: 'Company 11',
-      cr: 'CR12345678',
-      address: '123 Address Street X Muscat, Oman',
-      contact: '+97182648238',
-    },
-    {
-      name: 'Company 12',
-      cr: 'CR12345678',
-      address: '123 Address Street X Muscat, Oman',
-      contact: '+97182648238',
-    },
-    {
-      name: 'Company 13',
-      cr: 'CR12345678',
-      address: '123 Address Street X Muscat, Oman',
-      contact: '+97182648238',
-    },
-    {
-      name: 'Company 14',
-      cr: 'CR12345678',
-      address: '123 Address Street X Muscat, Oman',
-      contact: '+97182648238',
-    },
-  ]
+  const fetchCompanies = async () => {
+    const response = await axios.get(`http://localhost:8080/api/companies/fetch?token=${localStorage.getItem('token')}`)
+    console.log(response)
+    setCompanies(response.data.data)
+  }
+  fetchCompanies()
+  React.useEffect(()=>{
+    try {
+      fetchCompanies()
+    } catch {
+      console.error
+    }
+  })
   return (
     <div className='flex justify-start items-start w-full h-full flex-col overflow-y-scroll'>
       <div className='flex justify-between items-start  w-full'>
         <h1 className='text-3xl font-bold text-white'>Companies</h1>
         <button className="flex justify-center items-center bg-white rounded-xl text-black p-2 font-bold transition duration-500 hover:scale-125 hover:bg-transparent hover:text-white" onClick={()=>(document.getElementById('company_modal') as HTMLDialogElement)?.showModal()}><FaPlus size={18}/></button>
-        <dialog id="company_modal" className="modal">
+        <dialog id="company_modal" className={`modal ${shake ? 'animate-shake' : ''}`}>
           <div className="modal-box px-8">
             <h3 className="font-bold text-lg">Create a Company</h3>
             <p className="py-4">You must fill out all the fields.</p>
@@ -170,9 +115,9 @@ function CompaniesPage() {
               <input placeholder="Contact Name *" onChange={(e)=>{handleInputChange(e, 'person')}} className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl ml-1 text-white p-2 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
             </div>
             <input placeholder="Attachment *"  formEncType="multipart/form-data" onChange={(e)=>{handleInputChange(e, 'attachment')}} type="file" accept=".pdf" className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl  text-white p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
+            <button onClick={handleCreation} className='w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent hover:text-main font-bold hover:scale-110 hover:border-transparent'>Add Company</button>
             <div className="w-full">
               <form method="bg-white w-full">
-                <button className='w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent hover:text-main font-bold hover:scale-110 hover:border-transparent'>Add Company</button>
                 <button className='w-full bg-transparent rounded p-2 mt-4 text-white transition duration-300 hover:scale-105 font-bold border-[1px] border-white' onClick={()=>{handleBtnClicks(1)}}>Cancel</button>
               </form>
             </div>
@@ -194,17 +139,17 @@ function CompaniesPage() {
               </tr>
             </thead>
             <tbody className="overflow-y-scroll">
-              {companies.map((company,index) => (
+              {companies.length > 0 ? companies.map((company,index) => (
                 <tr tabIndex={index}>
                   <th>{company.name}</th>
                   <td>{company.cr}</td>
                   <td>{company.address}</td>
-                  <td>{company.contact}</td>
+                  <td>{company.contact.number}</td>
                   <td><a href="" className="underline">View</a></td>
-                  <td><a href="" className="underline">View</a></td>
+                  <td><a href={company.attachment} className="underline">View</a></td>
                   <td><a href="" className="underline">Edit</a></td>
                 </tr>
-              ))}
+              )) : ''}
             </tbody>
           </table>
         </div>

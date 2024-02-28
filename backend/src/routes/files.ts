@@ -2,6 +2,7 @@ import express from 'express';
 import multer from 'multer';
 import path from 'path';
 import { Request, Response } from 'express';
+import config from '../config';
 
 const upload = multer({ 
   dest: "uploads/",
@@ -36,17 +37,8 @@ function uploadFiles(req: Request, res: Response) {
   }
 
   // Access the uploaded files
-  const uploadedFiles = req.files as Express.Multer.File[];
-
-  // Return the file names and paths
-  const fileInfos = uploadedFiles.map(file => {
-    return {
-      originalName: file.originalname,
-      url: `http://localhost:8080/uploads/${file.filename}` // Construct URL for accessing the file
-    };
-  });
-
-  res.json({ message: "Successfully uploaded files", files: fileInfos });
+  const uploadedFiles = req.files as Express.Multer.File[]
+  res.json({ data: `http://${config.backendUri}/uploads/${uploadedFiles[0].filename}`, code: 200 });
 }
 
 router.post('/upload', upload.array("files"), uploadFiles);

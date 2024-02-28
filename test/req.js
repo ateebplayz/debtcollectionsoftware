@@ -3,20 +3,28 @@ const fs = require('fs');
 
 const sendData = async () => {
   try {
-    // Read the file 'package.json'
-    const fileContent = fs.readFileSync('package.json');
+    const userObject = {
+      cr: 'abcd',
+      companyCr: 'abcd',
+      name: 'abcd',
+      id: 'abcd',
+      address: 'abcd',
+      contact: {
+        person: 'abcd',
+        number: 'abcd'
+      },
+      attachment: 'abcd',
+      contracts: []
+    };
 
-    // Convert file content to a Blob
-    const fileBlob = new Blob([fileContent], { type: 'application/json' });
+    const requestBody = {
+      token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NWQzOWZiMTE5MzBhMzZjNTUyMWVjM2MiLCJ1c2VybmFtZSI6ImF0ZWVidGhlcHJvIiwicGFzc3dvcmQiOiJNaW5lY3JhZnRnbzA5MjEiLCJpYXQiOjE3MDg1NDUxMjd9.jZejnij9dwKMf-hRcDKhIhoTXlQ2U05M7N-uYGtwxHo',
+      client: userObject
+    };
 
-    // Construct form data with the file Blob
-    const formData = new FormData();
-    formData.append('file', fileBlob, 'package.json'); // Ensure the field name is 'file'
-
-    // Make a POST request to upload the file
-    const response = await axios.post('http://localhost:8080/api/files/upload', formData, {
+    const response = await axios.post('http://localhost:8080/api/clients/create', requestBody, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        'Content-Type': 'application/json', // Change content type if needed
         // Add any other headers if needed
       },
     });
