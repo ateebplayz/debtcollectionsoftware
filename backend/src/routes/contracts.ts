@@ -3,16 +3,15 @@ import jwt from 'jsonwebtoken'
 import config from "../config.js"
 import { collections } from "../modules/mongo.js"
 import { User } from "./user.js"
-import Company from "../schemas/company.js"
-import Client from "../schemas/client.js"
 import { generateTenDigitString } from "../modules/helpers.js"
+import Contract from "../schemas/contract.js"
 
 const router = express.Router()
 router.use(express.json())
 router.post("/create", async (req, res) => {
     const data = req.body
-    let clientData = data.client as Client
-    clientData.id = generateTenDigitString()
+    let contractData = data.contract as Contract
+    contractData.id = generateTenDigitString()
     try {
         const token = data.token
         if (!token) {
@@ -24,10 +23,10 @@ router.post("/create", async (req, res) => {
             if(!user) {
                 return res.json({error: 'Invalid Username/Password', code: 401})
             } else {
-                if (!clientData || !Object.values(clientData).every(value => value !== '')) {
-                    return res.json({ error: 'Invalid Client Object/None found', code: 404 });
+                if (!contractData || !Object.values(contractData).every(value => value !== '')) {
+                    return res.json({ error: 'Invalid Contract Object/None found', code: 404 });
                 }
-                await collections.clients.insertOne(clientData)
+                await collections.contracts.insertOne(contractData)
                 return res.json({msg: 'Success', code: 200})
             }
         } else {
@@ -43,7 +42,7 @@ router.post("/create", async (req, res) => {
 })
 router.post("/update", async (req, res) => {
     const data = req.body
-    const clientData = data.client as Client
+    const contractData = data.contract as Contract
     try {
         const token = data.token
         if (!token) {
@@ -55,10 +54,10 @@ router.post("/update", async (req, res) => {
             if(!user) {
                 return res.json({error: 'Invalid Username/Password', code: 401})
             } else {
-                if (!clientData || !Object.values(clientData).every(value => value !== '')) {
-                    return res.json({ error: 'Invalid Client Object/None found', code: 404 });
+                if (!contractData || !Object.values(contractData).every(value => value !== '')) {
+                    return res.json({ error: 'Invalid Contaract Object/None found', code: 404 });
                 }
-                await collections.companies.updateOne({cr: clientData.id}, {$set: clientData})
+                await collections.contracts.updateOne({cr: contractData.id}, {$set: contractData})
                 return res.json({msg: 'Success', code: 200})
             }
         } else {
@@ -85,8 +84,8 @@ router.post("/delete", async (req, res) => {
             if(!user) {
                 return res.json({error: 'Invalid Username/Password', code: 401})
             } else {
-                if(!data.id) return res.json({error: 'Invalid Client ID/None found', code: 404})
-                await collections.clients.deleteOne({cr: data.id})
+                if(!data.id) return res.json({error: 'Invalid Contract ID/None found', code: 404})
+                await collections.contracts.deleteOne({cr: data.id})
                 return res.json({msg: 'Success', code: 200})
             }
         } else {
@@ -113,8 +112,8 @@ router.get("/fetch", async (req, res) => {
             if(!user) {
                 return res.json({error: 'Invalid Username/Password', code: 401})
             } else {
-                const companies = await collections.clients.find().toArray()
-                return res.json({data: companies, code: 200})
+                const contracts = await collections.contracts.find().toArray()
+                return res.json({data: contracts, code: 200})
             }
         } else {
             return res.json({error: 'Unknown error occured', code: 0})

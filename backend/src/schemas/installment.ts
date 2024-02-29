@@ -12,7 +12,7 @@ export default interface Installment {
 	/**
 	 * Date the installment must be paid in Milliseconds
 	 * 
-	 * @example "17231229138"
+	 * @example "2024-02-01"
 	 */
-    date: number,
+    date: string,
 }

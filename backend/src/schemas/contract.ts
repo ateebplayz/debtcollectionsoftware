@@ -29,9 +29,9 @@ export default interface Contract {
 	/**
 	 * The final deadline of the contract in MS
 	 * 
-	 * @example 179128309128
+	 * @example '2024-02-01'
 	 */
-    date: number,
+    date: string,
 	/**
 	 * The total amount of money in the contract in OMR
 	 * 

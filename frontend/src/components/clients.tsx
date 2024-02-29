@@ -10,6 +10,8 @@ function sleep (ms: number) {
   return new Promise((res) => setTimeout(res, ms))
 }
 function ClientsPage() {
+  const [open, setOpen] = React.useState(false)
+  const [dropdownText, setDropdownText] = React.useState('Company *')
   const [disabled, setDisabled] = React.useState(false)
   const [clients, setClients] = React.useState<Array<Client>>([])
   const [companies, setCompanies] = React.useState<Array<Company>>([])
@@ -27,14 +29,21 @@ function ClientsPage() {
     attachment: '',
     contracts: []
   })
-  const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>, type: 'cr' | 'companyCr' | 'name' | 'address' | 'contact number' | 'contact person' | 'attachment') => {
+  const handleDropdownChange = async (value: string, type: 'companyCr') => {
+    let tempClient = client
+    switch(type) {
+      case 'companyCr':
+        tempClient.companyCr = value
+        break
+    }
+    setClient(tempClient)
+    console.log(tempClient)
+  }
+  const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>, type: 'cr'  | 'name' | 'address' | 'contact number' | 'contact person' | 'attachment') => {
     let tempClient = client
     switch(type) {
       case 'cr':
         tempClient.cr = e.target.value
-        break
-      case 'companyCr':
-        tempClient.companyCr = e.target.value
         break
       case 'name':
         tempClient.name = e.target.value
@@ -60,11 +69,14 @@ function ClientsPage() {
         }
         break
     }
+    setClient(tempClient)
+    console.log(client)
   }
+  
   const handleCreation = async () => {
     try {
       setDisabled(true)
-      const response = await axios.post('http://localhost:8080/api/clients/create', {company: client, token: localStorage.getItem('token')})
+      const response = await axios.post('http://localhost:8080/api/clients/create', {client: client, token: localStorage.getItem('token')})
       console.log(response.data)
       if(response.data.code == 200) {
         handleBtnClicks(1)
@@ -87,26 +99,33 @@ function ClientsPage() {
         break;
     }
   }
-  const fetchCompanies = async () => {
-    const response = await axios.get(`http://localhost:8080/api/companies/fetch?token=${localStorage.getItem('token')}`)
-    console.log(response)
-    setCompanies(response.data.data)
+  React.useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const companiesResponse = await axios.get(`http://localhost:8080/api/companies/fetch?token=${localStorage.getItem('token')}`);
+        setCompanies(companiesResponse.data.data);
+        
+        const clientsResponse = await axios.get(`http://localhost:8080/api/clients/fetch?token=${localStorage.getItem('token')}`);
+        setClients(clientsResponse.data.data);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    // Fetch data initially
+    fetchData();
+
+    // Fetch data every 10 seconds
+    const interval = setInterval(fetchData, 10000);
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(interval);
+  }, []);
+  const toggleOpen = () => {
+    console.log(open)
+    setOpen(!open)
   }
-  const fetchClients = async () => {
-    const response = await axios.get(`http://localhost:8080/api/clients/fetch?token=${localStorage.getItem('token')}`)
-    console.log(response)
-    setClients(response.data.data)
-  }
-  
-  fetchCompanies()
-  fetchClients()
-  React.useEffect(()=>{
-    try {
-      fetchClients()
-    } catch {
-      console.error
-    }
-  })
+
   return (
     <div className='flex justify-start items-start w-full h-full flex-col overflow-y-scroll'>
       <div className='flex justify-between items-start  w-full'>
@@ -117,21 +136,27 @@ function ClientsPage() {
             <h3 className="font-bold text-lg">Create a Client</h3>
             <p className="py-4">You must fill out all the fields.</p>
             <div className="w-full justify-between items-center flex">
-              <input placeholder="Company Name *" onChange={(e)=>{handleInputChange(e, 'name')}} required={true} className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl text-white p-2 mr-1 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
-              <input placeholder="Company CR Number *" onChange={(e)=>{handleInputChange(e, 'cr')}} className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl ml-1 text-white p-2 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
+              <input placeholder="Client Name *" onChange={(e)=>{handleInputChange(e, 'name')}} required={true} className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl text-white p-2 mr-1 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
+              <input placeholder="Client CR No* " onChange={(e)=>{handleInputChange(e, 'cr')}} className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl ml-1 text-white p-2 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
             </div>
-            <input placeholder="Company Address *" onChange={(e)=>{handleInputChange(e, 'address')}} className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl  text-white p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
+            <div className={`w-full`} onClick={toggleOpen}>
+              <summary className="btn bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl  text-white p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 text-start focus:opacity-100" onClick={toggleOpen}>{dropdownText}</summary>
+              <ul className={`${open ? " flex shadow menu dropdown-content z-[1] rounded-box w-full bg-[rgba(149,165,166,1)] border-2 border-base-100 font-bold text-black" : 'hidden' }`}>
+                {
+                  companies.map((company, index) => (
+                    <li onClick={()=>{setOpen(false); setDropdownText(company.name); handleDropdownChange(company.cr, 'companyCr')}} tabIndex={index} className="transition duration-500 rounded-xl hover:bg-base-100 hover:text-white"><a>{company.name}</a></li>
+                  ))
+                }
+              </ul>
+            </div>
+            <input placeholder="Address *" onChange={(e)=>{handleInputChange(e, 'address')}} className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl  text-white p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
             <div className="w-full justify-between items-center flex">
               <input placeholder="Contact Number *" onChange={(e)=>{handleInputChange(e, 'contact number')}} required={true} className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl text-white p-2 mr-1 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
               <input placeholder="Contact Name *" onChange={(e)=>{handleInputChange(e, 'contact person')}} className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl ml-1 text-white p-2 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
             </div>
             <input placeholder="Attachment *"  formEncType="multipart/form-data" onChange={(e)=>{handleInputChange(e, 'attachment')}} type="file" accept=".pdf" className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl  text-white p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
-            <button onClick={handleCreation} className='w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent hover:text-main font-bold hover:scale-110 hover:border-transparent'>Add Company</button>
-            <div className="w-full">
-              <form method="bg-white w-full">
-                <button className='w-full bg-transparent rounded p-2 mt-4 text-white transition duration-300 hover:scale-105 font-bold border-[1px] border-white' onClick={()=>{handleBtnClicks(1)}}>Cancel</button>
-              </form>
-            </div>
+            <button onClick={handleCreation} className='w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent hover:text-main font-bold hover:scale-110 hover:border-transparent'>Add Client</button>
+            <button className='w-full bg-transparent rounded p-2 mt-4 text-white transition duration-300 hover:scale-105 font-bold border-[1px] border-white' onClick={()=>{handleBtnClicks(1)}}>Cancel</button>
           </div>
         </dialog>
       </div>
@@ -151,14 +176,15 @@ function ClientsPage() {
               </tr>
             </thead>
             <tbody className="overflow-y-scroll">
-              {clients.length > 0 ? clients.map((company,index) => (
+              {clients.length > 0 ? clients.map((client,index) => (
                 <tr tabIndex={index}>
-                  <th>{company.name}</th>
-                  <td>{company.cr}</td>
-                  <td>{company.address}</td>
-                  <td>{company.contact.number}</td>
+                  <th>{client.name}</th>
+                  <td>{client.cr}</td>
+                  <td>{client.companyCr}</td>
+                  <td>{client.contact.number}</td>
                   <td><a href="" className="underline">View</a></td>
-                  <td><a href={company.attachment} className="underline">View</a></td>
+                  <td><a href="" className="underline">View</a></td>
+                  <td><a href={client.attachment} className="underline">View</a></td>
                   <td><a href="" className="underline">Edit</a></td>
                 </tr>
               )) : ''}

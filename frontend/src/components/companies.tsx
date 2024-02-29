@@ -2,16 +2,19 @@
 import { FaPlus } from "react-icons/fa6"
 import React from 'react'
 import { useRouter } from "next/navigation"
-import Company from "@/schemas/company"
+import Company from "../schemas/company"
 import axios from "axios"
+import Client from "../schemas/client"
 
 function sleep (ms: number) {
   return new Promise((res) => setTimeout(res, ms))
 }
 function CompaniesPage() {
   const [disabled, setDisabled] = React.useState(false)
+  const [localClients, setLocalClients] = React.useState<Array<Client>>([])
   const [companies, setCompanies] = React.useState<Array<Company>>([])
   const [shake, setShake] = React.useState(false)
+  const [localCompanyCr, setLocalCompanyCr] = React.useState('')
   const [company, setCompany] = React.useState<Company>({
     name: "",
     cr: "",
@@ -83,19 +86,33 @@ function CompaniesPage() {
         break;
     }
   }
-  const fetchCompanies = async () => {
-    const response = await axios.get(`http://localhost:8080/api/companies/fetch?token=${localStorage.getItem('token')}`)
-    console.log(response)
-    setCompanies(response.data.data)
+  const fetchLocalClients = async () => {
+    const clients = (await axios.get(`http://localhost:8080/api/clients/fetch?token=${localStorage.getItem('token')}`)).data.data as Array<Client>
+    let localClients: Array<Client> = []
+    clients.map((client) => {
+      if(client.companyCr == localCompanyCr) localClients.push(client)
+    })
+    setLocalClients(localClients)
   }
-  fetchCompanies()
-  React.useEffect(()=>{
-    try {
-      fetchCompanies()
-    } catch {
-      console.error
-    }
-  })
+  React.useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const companiesResponse = await axios.get(`http://localhost:8080/api/companies/fetch?token=${localStorage.getItem('token')}`);
+        setCompanies(companiesResponse.data.data);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    // Fetch data initially
+    fetchData();
+
+    // Fetch data every 10 seconds
+    const interval = setInterval(fetchData, 10000);
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(interval);
+  }, []);
   return (
     <div className='flex justify-start items-start w-full h-full flex-col overflow-y-scroll'>
       <div className='flex justify-between items-start  w-full'>
@@ -116,10 +133,19 @@ function CompaniesPage() {
             </div>
             <input placeholder="Attachment *"  formEncType="multipart/form-data" onChange={(e)=>{handleInputChange(e, 'attachment')}} type="file" accept=".pdf" className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl  text-white p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
             <button onClick={handleCreation} className='w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent hover:text-main font-bold hover:scale-110 hover:border-transparent'>Add Company</button>
-            <div className="w-full">
-              <form method="bg-white w-full">
-                <button className='w-full bg-transparent rounded p-2 mt-4 text-white transition duration-300 hover:scale-105 font-bold border-[1px] border-white' onClick={()=>{handleBtnClicks(1)}}>Cancel</button>
-              </form>
+            <button className='w-full bg-transparent rounded p-2 mt-4 text-white transition duration-300 hover:scale-105 font-bold border-[1px] border-white' onClick={()=>{handleBtnClicks(1)}}>Cancel</button>
+          </div>
+        </dialog>
+        <dialog id="company_client_modal" className={`modal ${shake ? 'animate-shake' : ''}`}>
+          <div className="modal-box px-8">
+            <h3 className="font-bold text-lg">Clients</h3>
+            <p className="py-4">Below is a list of all the clients part of company with CR {localCompanyCr}</p>
+            <div>
+              {
+                localClients.map((client) => (
+                  <div>{company.name}</div>
+                ))
+              }
             </div>
           </div>
         </dialog>
@@ -145,7 +171,7 @@ function CompaniesPage() {
                   <td>{company.cr}</td>
                   <td>{company.address}</td>
                   <td>{company.contact.number}</td>
-                  <td><a href="" className="underline">View</a></td>
+                  <td><a onClick={()=>{setLocalCompanyCr(company.cr); fetchLocalClients(); (document.getElementById('company_client_modal') as HTMLDialogElement)?.showModal()}} className="underline">View</a></td>
                   <td><a href={company.attachment} className="underline">View</a></td>
                   <td><a href="" className="underline">Edit</a></td>
                 </tr>
