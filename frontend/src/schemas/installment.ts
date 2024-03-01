@@ -15,4 +15,10 @@ export default interface Installment {
 	 * @example "2024-02-01"
 	 */
     date: string,
+	/**
+	 * Has the installment been paid
+	 * 
+	 * @example true
+	 */
+	paid: boolean
 }

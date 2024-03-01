@@ -1,20 +1,42 @@
 'use client'
 import { FaPlus } from "react-icons/fa6"
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useRouter } from "next/navigation"
 import Company from "../schemas/company"
 import axios from "axios"
 import Client from "../schemas/client"
+import { serverUri } from "@/data"
 
 function sleep (ms: number) {
   return new Promise((res) => setTimeout(res, ms))
 }
 function CompaniesPage() {
   const [disabled, setDisabled] = React.useState(false)
-  const [localClients, setLocalClients] = React.useState<Array<Client>>([])
+  const [clients, setClients] = React.useState<Array<Client>>([])
   const [companies, setCompanies] = React.useState<Array<Company>>([])
   const [shake, setShake] = React.useState(false)
-  const [localCompanyCr, setLocalCompanyCr] = React.useState('')
+  const [toUpdateCompany, setToUpdateCompany] = React.useState<Company>({
+    name: "",
+    cr: "",
+    address: "",
+    contact: {
+      number: "",
+      person: "",
+    },
+    attachment: "",
+    clients: []
+  })
+  const [localCompany, setLocalCompany] = React.useState<Company>({
+    name: "",
+    cr: "",
+    address: "",
+    contact: {
+      number: "",
+      person: "",
+    },
+    attachment: "",
+    clients: []
+  })
   const [company, setCompany] = React.useState<Company>({
     name: "",
     cr: "",
@@ -50,7 +72,7 @@ function CompaniesPage() {
           const formData = new FormData();
           formData.append("files", selectedFile);
         
-          const response = await axios.post('http://localhost:8080/api/files/upload', formData)
+          const response = await axios.post(`${serverUri}/api/files/upload`, formData)
           console.log(response.data.data)
           companyTemp.attachment = response.data.data
         }
@@ -63,7 +85,7 @@ function CompaniesPage() {
   const handleCreation = async () => {
     try {
       setDisabled(true)
-      const response = await axios.post('http://localhost:8080/api/companies/create', {company: company, token: localStorage.getItem('token')})
+      const response = await axios.post(`${serverUri}/api/companies/create`, {company: company, token: localStorage.getItem('token')})
       console.log(response.data)
       if(response.data.code == 200) {
         handleBtnClicks(1)
@@ -84,35 +106,95 @@ function CompaniesPage() {
       case 1:
         (document.getElementById('company_modal') as HTMLDialogElement)?.close()
         break;
+      case 2:
+        (document.getElementById('company_client_modal') as HTMLDialogElement)?.close()
+        break
+      case 3:
+        (document.getElementById('company_update_modal') as HTMLDialogElement)?.close()
+        break
+    }
+    fetchData()
+  }
+  const getClient = (clientId: string) => {
+    let client: Client = {
+      cr: "",
+      companyCr: "",
+      name: "",
+      id: "",
+      address: "",
+      contact: {
+        number: "",
+        person: ""
+      },
+      attachment: "",
+      contracts: []
+    }
+    clients.forEach((clientT) => {clientT.id == clientId ? client = clientT : ''})
+    return client
+  }
+  const fetchData = async () => {
+    try {
+      const companiesResponse = await axios.get(`${serverUri}/api/companies/fetch`, {
+        params: {
+          token: localStorage.getItem('token')
+        }
+      });
+      const clientsResponse = await axios.get(`${serverUri}/api/clients/fetch`, {
+        params: {
+          token: localStorage.getItem('token')
+        }
+      });
+      setCompanies(companiesResponse.data.data);
+      setClients(clientsResponse.data.data);
+    } catch (error) {
+      console.error('Error fetching data:', error);
     }
   }
-  const fetchLocalClients = async () => {
-    const clients = (await axios.get(`http://localhost:8080/api/clients/fetch?token=${localStorage.getItem('token')}`)).data.data as Array<Client>
-    let localClients: Array<Client> = []
-    clients.map((client) => {
-      if(client.companyCr == localCompanyCr) localClients.push(client)
-    })
-    setLocalClients(localClients)
+  useEffect(() => {
+    fetchData()
+    const interval = setInterval(fetchData, 10000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const updateCompany = async (e: React.ChangeEvent<HTMLInputElement>, type: 'name' | 'cr' | 'address' | 'number' | 'person' | 'attachment') => {
+    let companyTemp = toUpdateCompany
+    switch(type) {
+      case 'name':
+        companyTemp.name = e.target.value
+        break;
+      case 'cr':
+        companyTemp.cr = e.target.value
+        break;
+      case 'address':
+        companyTemp.address = e.target.value
+        break;
+      case 'number':
+        companyTemp.contact.number = e.target.value
+        break;
+      case 'person':
+        companyTemp.contact.person = e.target.value
+        break;
+      case 'attachment':
+        if (e.target.files && e.target.files[0]) {
+          const selectedFile = e.target.files[0];
+          const formData = new FormData();
+          formData.append("files", selectedFile);
+        
+          const response = await axios.post(`${serverUri}/api/files/upload`, formData)
+          console.log(response.data.data)
+          companyTemp.attachment = response.data.data
+        }
+        console.log(company)
+        break;
+    }
+    console.log(companyTemp)
+    setToUpdateCompany(companyTemp)
   }
-  React.useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const companiesResponse = await axios.get(`http://localhost:8080/api/companies/fetch?token=${localStorage.getItem('token')}`);
-        setCompanies(companiesResponse.data.data);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
-
-    // Fetch data initially
-    fetchData();
-
-    // Fetch data every 10 seconds
-    const interval = setInterval(fetchData, 10000);
-
-    // Cleanup interval on component unmount
-    return () => clearInterval(interval);
-  }, []);
+  const updateTheCompany = async () => {
+    const resp = await axios.post(`${serverUri}/api/companies/update`, {token: localStorage.getItem('token'), company: toUpdateCompany});
+    console.log(resp.data);
+    (document.getElementById('company_update_modal') as HTMLDialogElement)?.close()
+  }
   return (
     <div className='flex justify-start items-start w-full h-full flex-col overflow-y-scroll'>
       <div className='flex justify-between items-start  w-full'>
@@ -139,14 +221,32 @@ function CompaniesPage() {
         <dialog id="company_client_modal" className={`modal ${shake ? 'animate-shake' : ''}`}>
           <div className="modal-box px-8">
             <h3 className="font-bold text-lg">Clients</h3>
-            <p className="py-4">Below is a list of all the clients part of company with CR {localCompanyCr}</p>
+            <p className="py-4">Below is a list of all the clients part of company with CR {company.cr}</p>
             <div>
               {
-                localClients.map((client) => (
-                  <div>{company.name}</div>
+                localCompany.clients.map((clientId) => (
+                  <div className="bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl  text-white p-4 w-full mt-3 border-none">{getClient(clientId).name} ({getClient(clientId).cr}) [{getClient(clientId).id}]</div>
                 ))
               }
             </div>
+            <button onClick={() => {handleBtnClicks(2)}} className='w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent hover:text-main font-bold hover:scale-110 hover:border-transparent'>Close</button>
+          </div>
+        </dialog>
+        <dialog id="company_update_modal" className={`modal ${shake ? 'animate-shake' : ''}`}>
+          <div className="modal-box px-8">
+            <h3 className="font-bold text-lg">Update the Company</h3>
+            <p className="py-4">You must fill out all the fields.</p>
+            <div className="w-full justify-between items-center flex">
+              <input placeholder="Company Name *" onChange={(e)=>{updateCompany(e, 'name')}} value={toUpdateCompany.name} required={true} className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl text-white p-2 mr-1 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
+              <input placeholder="Company CR Number *" onChange={(e)=>{updateCompany(e, 'cr')}} value={toUpdateCompany.cr} className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl ml-1 text-white p-2 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
+            </div>
+            <input placeholder="Company Address *" value={toUpdateCompany.address} onChange={(e)=>{updateCompany(e, 'address')}} className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl  text-white p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
+            <div className="w-full justify-between items-center flex">
+              <input value={toUpdateCompany.contact.number} placeholder="Contact Number *" onChange={(e)=>{updateCompany(e, 'number')}} required={true} className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl text-white p-2 mr-1 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
+              <input placeholder="Contact Name *" value={toUpdateCompany.contact.person} onChange={(e)=>{updateCompany(e, 'person')}} className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl ml-1 text-white p-2 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
+            </div>
+            <button onClick={updateTheCompany} className='w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent hover:text-main font-bold hover:scale-110 hover:border-transparent'>Update Company</button>
+            <button className='w-full bg-transparent rounded p-2 mt-4 text-white transition duration-300 hover:scale-105 font-bold border-[1px] border-white' onClick={()=>{handleBtnClicks(3)}}>Cancel</button>
           </div>
         </dialog>
       </div>
@@ -171,9 +271,9 @@ function CompaniesPage() {
                   <td>{company.cr}</td>
                   <td>{company.address}</td>
                   <td>{company.contact.number}</td>
-                  <td><a onClick={()=>{setLocalCompanyCr(company.cr); fetchLocalClients(); (document.getElementById('company_client_modal') as HTMLDialogElement)?.showModal()}} className="underline">View</a></td>
-                  <td><a href={company.attachment} className="underline">View</a></td>
-                  <td><a href="" className="underline">Edit</a></td>
+                  <td><a onClick={()=>{(document.getElementById('company_client_modal') as HTMLDialogElement)?.showModal(); setLocalCompany(company)}} className="underline cursor-pointer">View</a></td>
+                  <td><a href={company.attachment} className="underline cursor-pointer">View</a></td>
+                  <td><a onClick={()=>{setToUpdateCompany(company); (document.getElementById('company_update_modal') as HTMLDialogElement)?.showModal()}} className="underline cursor-pointer">Edit</a></td>
                 </tr>
               )) : ''}
             </tbody>

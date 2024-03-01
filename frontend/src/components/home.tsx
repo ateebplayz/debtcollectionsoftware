@@ -25,17 +25,12 @@ const companyUnpaidChart: ApexOptions = {
   },
   colors: [
     "#ff0000",
-    "#ff2424",
-    "#ff4747",
-    "#ff6b6b",
-    "#ff8f8f",
-    "#ffb3b3",
-    "#ffd6d6",
+    "#D3D3D3"
   ],
   legend: {
       show: false,
   },
-  series: [10, 20, 15, 5, 25, 10, 15],
+  series: [89,11],
 }
 const clientsUnpaidChart: ApexOptions = {
   chart: {
@@ -54,19 +49,12 @@ const clientsUnpaidChart: ApexOptions = {
   },
   colors: [
     "#01579b",
-    "#0277bd",
-    "#00b0ff",
-    "#40c4ff",
-    "#0288d1",
-    "#03a9f4",
-    "#29b6f6",
-    "#81d4fa",
-    "#0091ea",
+    "#D3D3D3"
   ],
   legend: {
       show: false,
   },
-  series: [12, 3, 26, 7, 7, 18, 21, 6],
+  series: [94,6],
 }
 const contractsUnpaidChart: ApexOptions = {
   chart: {
@@ -85,19 +73,12 @@ const contractsUnpaidChart: ApexOptions = {
   },
   colors: [
     "#33691e",
-    "#558b2f",
-    "#689f38",
-    "#7cb342",
-    "#8bc34a",
-    "#64dd17",
-    "#9ccc65",
-    "#aed581",
-    "#b2ff59",
+    "#D3D3D3"
   ],
   legend: {
       show: false,
   },
-  series: [7, 14, 27, 14, 9, 6, 18, 5],
+  series: [95, 5],
 }
 
 function HomePage() {
@@ -110,39 +91,39 @@ function HomePage() {
             className="flex flex-col rounded-none p-4 py-6 w-full"
           >
               <h1 className='font-bold text-xl text-center' color="blue-gray">
-                Companies With Unpaid Debt
+                Website Progress
               </h1>
           </div>
           <CardBody placeholder={'Card'} className="grid place-items-center px-2 mb-2">
             <Chart options={companyUnpaidChart} series={companyUnpaidChart.series} type={companyUnpaidChart.chart?.type} />
           </CardBody>
-          <button className='bg-red-500 m-4 p-3 font-bold rounded-xl transition duration-500 hover:scale-110 hover:bg-transparent hover:text-red-500'>Manage Companies</button>
+          <button className='bg-red-500 m-4 p-3 font-bold rounded-xl transition duration-500 hover:scale-110 hover:bg-transparent hover:text-red-500'>Manage Progress</button>
         </Card>
         <Card placeholder={'Card'} className='bg-black w-72 mx-2'>
           <div
             className="flex flex-col rounded-none p-4 py-6 w-full"
           >
               <h1 className='font-bold text-xl text-center' color="blue-gray">
-                Clientelles With Unpaid Debt
+                Frontend
               </h1>
           </div>
           <CardBody placeholder={'Card'} className="grid place-items-center px-2 mb-4">
             <Chart options={clientsUnpaidChart} series={clientsUnpaidChart.series} type={clientsUnpaidChart.chart?.type} />
           </CardBody>
-          <button className='bg-blue-500 m-4 p-3 font-bold rounded-xl transition duration-500 hover:scale-110 hover:bg-transparent hover:text-blue-500'>Manage Clients</button>
+          <button className='bg-blue-500 m-4 p-3 font-bold rounded-xl transition duration-500 hover:scale-110 hover:bg-transparent hover:text-blue-500'>Manage Progress</button>
         </Card>
         <Card placeholder={'Card'} className='bg-black w-72 ml-4'>
           <div
             className="flex flex-col rounded-none p-4 py-6 w-full"
           >
               <h1 className='font-bold text-xl text-center' color="blue-gray">
-                Contracts With Unpaid Debt
+                Backend
               </h1>
           </div>
           <CardBody placeholder={'Card'} className="grid place-items-center px-2 mb-4">
             <Chart options={contractsUnpaidChart} series={contractsUnpaidChart.series} type={contractsUnpaidChart.chart?.type} />
           </CardBody>
-          <button className='bg-green-500 m-4 p-3 font-bold rounded-xl transition duration-500 hover:scale-110 hover:bg-transparent hover:text-green-500'>Manage Companies</button>
+          <button className='bg-green-500 m-4 p-3 font-bold rounded-xl transition duration-500 hover:scale-110 hover:bg-transparent hover:text-green-500'>Manage Progress</button>
         </Card>
       </div>
     </div>

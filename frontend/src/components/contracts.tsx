@@ -7,6 +7,7 @@ import axios from "axios"
 import Client from "@/schemas/client"
 import Contract from "@/schemas/contract"
 import Installment from "@/schemas/installment"
+import { serverUri } from "@/data"
 
 function sleep (ms: number) {
   return new Promise((res) => setTimeout(res, ms))
@@ -24,6 +25,17 @@ function ContractsPage() {
   const [companies, setCompanies] = React.useState<Array<Company>>([])
   const [contracts, setContracts] = React.useState<Array<Contract>>([])
   const [shake, setShake] = React.useState(false)
+  const [localContract, setLocalContract] = React.useState<Contract>({
+    companyCr: '',
+    clientId: '',
+    id: '',
+    installments: [],
+    date: '',
+    amount: 0,
+    description: '',
+    percentage: 0,
+  }
+  )
   const [contract, setContract] = React.useState<Contract>({
     companyCr: '',
     clientId: '',
@@ -81,7 +93,13 @@ function ContractsPage() {
   const handleCreation = async () => {
     try {
       setDisabled(true)
-      const response = await axios.post('http://localhost:8080/api/contracts/create', {contract: contract, token: localStorage.getItem('token')})
+      const contractWithInstallment: Contract = {
+        ...contract,
+        installments: installments
+      }
+      console.log(1, installments)
+      console.log(contractWithInstallment)
+      const response = await axios.post(`${serverUri}/api/contracts/create`, {contract: contractWithInstallment, token: localStorage.getItem('token')})
       console.log(response.data)
       if(response.data.code == 200) {
         handleBtnClicks(1)
@@ -104,6 +122,12 @@ function ContractsPage() {
         break
       case 2:
         (document.getElementById('installment_modal') as HTMLDialogElement)?.close()
+        break
+      case 3:
+        (document.getElementById('contract_installments_modal') as HTMLDialogElement)?.close()
+        break
+      case 4:
+        (document.getElementById('contract_description_modal') as HTMLDialogElement)?.close()
         break
     }
   }
@@ -146,13 +170,13 @@ function ContractsPage() {
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        const companiesResponse = await axios.get(`http://localhost:8080/api/companies/fetch?token=${localStorage.getItem('token')}`);
+        const companiesResponse = await axios.get(`${serverUri}/api/companies/fetch?token=${localStorage.getItem('token')}`);
         setCompanies(companiesResponse.data.data);
         
-        const clientsResponse = await axios.get(`http://localhost:8080/api/clients/fetch?token=${localStorage.getItem('token')}`);
+        const clientsResponse = await axios.get(`${serverUri}/api/clients/fetch?token=${localStorage.getItem('token')}`);
         setClients(clientsResponse.data.data);
         
-        const contractsResponse = await axios.get(`http://localhost:8080/api/contracts/fetch?token=${localStorage.getItem('token')}`);
+        const contractsResponse = await axios.get(`${serverUri}/api/contracts/fetch?token=${localStorage.getItem('token')}`);
         setContracts(contractsResponse.data.data);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -163,7 +187,7 @@ function ContractsPage() {
     fetchData();
 
     // Fetch data every 10 seconds
-    const interval = setInterval(fetchData, 10000);
+    const interval = setInterval(fetchData, 1000);
 
     // Cleanup interval on component unmount
     return () => clearInterval(interval);
@@ -212,7 +236,7 @@ function ContractsPage() {
           <div className="modal-box px-8">
             <h3 className="font-bold text-lg">Installments</h3>
             <p className="py-4">Create an Installment, or remove one by clicking on the buttons below! Make sure to not go over initial Amount</p>
-            <button className="bg-white rounded-xl p-2 text-black font-bold mr-2 transition duration-500 hover:scale-105 cursor-pointer active:scale-90" onClick={() => {let oldIns = installments;oldIns.push({amount: 0, date: Date()}); setInstallments(oldIns); console.log(installments)}}>New Installment</button>
+            <button className="bg-white rounded-xl p-2 text-black font-bold mr-2 transition duration-500 hover:scale-105 cursor-pointer active:scale-90" onClick={() => {let oldIns = installments;oldIns.push({amount: 0, date: Date(), paid: false}); setInstallments(oldIns); console.log(installments)}}>New Installment</button>
             <button className="bg-white rounded-xl p-2 text-black font-bold ml-2 transition duration-500 hover:scale-105 cursor-pointer active:scale-90" onClick={() => {let oldIns = installments;oldIns.pop(); setInstallments(oldIns); setTotalInstallmentAmount(totalInstallmentAmount - oldIns[oldIns.length - 1].amount)}}>Remove Installment</button>
             {
               installments.map((installment, index) => (
@@ -225,6 +249,33 @@ function ContractsPage() {
             <h1 className="mt-6 text-sm">Total Contract Amount : {contract.amount}</h1>
             <h1 className="">Total Installment Amount : <span className={`${totalInstallmentAmount > contract.amount || totalInstallmentAmount < contract.amount ? 'text-red-500' : ''}`}>{totalInstallmentAmount} OMR</span></h1>
             <button onClick={()=>{handleBtnClicks(2)}} className={`${totalInstallmentAmount > contract.amount || totalInstallmentAmount < contract.amount? 'pointer-events-none opacity-50' : ''} w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent hover:text-main font-bold hover:scale-110 hover:border-transparent`}>Submit</button>
+          </div>
+        </dialog>
+        <dialog id="contract_installments_modal" className={`modal ${shake ? 'animate-shake' : ''}`}>
+          <div className="modal-box px-8">
+            <h3 className="font-bold text-lg">Contract Installments</h3>
+            <p className="py-4">Below are the installments this contract has. Green Ones have been paid. You can mark one paid by clicking the button.</p>
+            <div className="flex justify-center items-center flex-col">
+                {localContract.installments.map((installment, index) => (
+                  <div className={`${!installment.paid ? 'bg-[rgba(149,165,166,0.7)]' : 'bg-emerald-400'} border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl text-white p-2 mt-3 border-none w-full flex justify-between`}>
+                    <h1>{installment.amount} OMR [{installment.date}]</h1>
+                    {!installment.paid ? 
+                    <h1 onClick={async () => {
+                      const resp = await axios.post(`${serverUri}/api/installments/pay`, {token: localStorage.getItem('token'), contract: localContract, installmentIndex: index});
+                      console.log(resp.data);
+                      ((document.getElementById('contract_installments_modal') as HTMLDialogElement)?.close())
+                    }} className="underline cursor-pointer">Mark As Paid</h1> : <></>}
+                  </div>
+                ))}
+            </div>
+            <button onClick={()=>{handleBtnClicks(3)}} className='w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent hover:text-main font-bold hover:scale-110 hover:border-transparent'>Close</button>
+          </div>
+        </dialog>
+        <dialog id="contract_description_modal" className={`modal ${shake ? 'animate-shake' : ''}`}>
+          <div className="modal-box px-8">
+            <h3 className="font-bold text-lg">Contract Description</h3>
+            <p className="py-4">{localContract.description}</p>
+            <button onClick={()=>{handleBtnClicks(4)}} className='w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent hover:text-main font-bold hover:scale-110 hover:border-transparent'>Close</button>
           </div>
         </dialog>
       </div>
@@ -248,13 +299,17 @@ function ContractsPage() {
               {contracts.length > 0 ? contracts.map((contract, index) => (
                 <tr tabIndex={index} className="w-full" key={contract.id}>
                   <th className="whitespace-nowrap">{contract.id}</th>
-                  <td className="break-words text-wrap whitespace-normal w-3/12">{contract.description}</td>
+                  <td onClick={()=>{(document.getElementById('contract_description_modal') as HTMLDialogElement)?.showModal();setLocalContract(contract)}} className="underline cursor-pointer">View</td>
                   <td>{contract.companyCr}</td>
                   <td>{clients.find(client => client.id === contract.clientId)?.name || 'None Found'}</td>
-                  <td><a href="" className="underline">View</a></td>
+                  <td><a onClick={() => {setLocalContract(contract); (document.getElementById('contract_installments_modal') as HTMLDialogElement)?.showModal(); console.log(contract)}} className="underline cursor-pointer">View</a></td>
                   <td>{contract.date}</td>
                   <td>{contract.amount}</td>
                   <td>{contract.percentage}</td>
+                  <td onClick={async () => {
+                    const resp = await axios.post(`${serverUri}/api/contracts/delete`, {contract: contract, token: localStorage.getItem('token')})
+                    console.log(resp.data)
+                  }} className="underline cursor_pointer cursor-pointer transition duration-500 hover:opacity-50">Delete</td>
                 </tr>
               )) : ''}
             </tbody>

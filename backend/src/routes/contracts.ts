@@ -26,8 +26,15 @@ router.post("/create", async (req, res) => {
                 if (!contractData || !Object.values(contractData).every(value => value !== '')) {
                     return res.json({ error: 'Invalid Contract Object/None found', code: 404 });
                 }
-                await collections.contracts.insertOne(contractData)
-                return res.json({msg: 'Success', code: 200})
+                let client = await collections.clients.findOne({id: contractData.clientId})
+                if(client) {
+                    client.contracts.push(contractData.id)
+                    await collections.contracts.insertOne(contractData)
+                    await collections.clients.updateOne({id: contractData.clientId}, {$set: client})
+                    return res.json({msg: 'Success', code: 200})
+                } else {
+                    return res.json({error: 'Client not found', code: 404})
+                }
             }
         } else {
             return res.json({error: 'Unknown error occured', code: 0})
@@ -72,7 +79,8 @@ router.post("/update", async (req, res) => {
     }
 })
 router.post("/delete", async (req, res) => {
-    const data = req.body as {token: string, id: string}
+    const data = req.body as {token: string, contract: Contract}
+    const contract = data.contract
     try {
         const token = data.token
         if (!token) {
@@ -84,9 +92,23 @@ router.post("/delete", async (req, res) => {
             if(!user) {
                 return res.json({error: 'Invalid Username/Password', code: 401})
             } else {
-                if(!data.id) return res.json({error: 'Invalid Contract ID/None found', code: 404})
-                await collections.contracts.deleteOne({cr: data.id})
-                return res.json({msg: 'Success', code: 200})
+                if(!contract.id) return res.json({error: 'Invalid Contract ID/None found', code: 404})
+                let client = await collections.clients.findOne({id: contract.clientId})
+                if(client) {
+                    let index = -1
+                    client.contracts.map((contractId, index) => {
+                        if(contractId == contract.id) index = index
+                    })
+                    if(index == 0) {
+                        return res.json({error: 'Client doesnt have contract', code: 404})
+                    }
+                    client.contracts.splice(index, 1)
+                    collections.clients.updateOne({id: client.id}, {$set: client})
+                    collections.contracts.deleteOne({id: contract.id})
+                    return res.json({msg: 'Success', code: 200})
+                } else {
+                    return res.json({msg: 'Client not found', code: 404})
+                }
             }
         } else {
             return res.json({error: 'Unknown error occured', code: 0})

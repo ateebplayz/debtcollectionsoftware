@@ -50,9 +50,18 @@ router.post("/update", async (req, res) => {
             if(!user) {
                 return res.json({error: 'Invalid Username/Password', code: 401})
             } else {
+                let oldCompany = await collections.companies.findOne({cr: companyData.cr})
                 if(!companyData || !companyData.name || !companyData.cr || !companyData.address || !companyData.contact.number || !companyData.contact.person || !companyData.attachment || !companyData.clients) return res.json({error: 'Invalid Company Object/None found', code: 404})
-                await collections.companies.updateOne({cr: companyData.cr}, {$set: companyData})
-                return res.json({msg: 'Success', code: 200})
+                if(oldCompany) {
+                    oldCompany.address = companyData.address
+                    oldCompany.attachment = companyData.attachment
+                    oldCompany.clients = companyData.clients
+                    oldCompany.contact = companyData.contact
+                    oldCompany.cr = companyData.cr
+                    oldCompany.name = companyData.name
+                    await collections.companies.updateOne({cr: companyData.cr}, {$set: oldCompany})
+                    return res.json({msg: 'Success', code: 200})
+                } else return res.json({error: 'No company found', code: '404'})
             }
         } else {
             return res.json({error: 'Unknown error occured', code: 0})

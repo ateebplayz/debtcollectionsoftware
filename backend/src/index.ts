@@ -5,6 +5,7 @@ import companyRoute from './routes/companies';
 import filesRoute from './routes/files';
 import contractsRoute from './routes/contracts'
 import clientsRoute from './routes/clients';
+import installmentsRoute from './routes/installment'
 import { mongoClient } from './modules/mongo';
 import path from 'path';
 
@@ -23,6 +24,7 @@ app.use("/api/companies", companyRoute);
 app.use("/api/files", filesRoute);
 app.use("/api/clients", clientsRoute);
 app.use("/api/contracts", contractsRoute);
+app.use("/api/installments", installmentsRoute);
 
 app.listen(8080, () => {
 	console.log('Server started on port 8080');
