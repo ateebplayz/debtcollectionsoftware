@@ -88,7 +88,19 @@ router.post("/delete", async (req, res) => {
                 return res.json({error: 'Invalid Username/Password', code: 401})
             } else {
                 if(!data.cr) return res.json({error: 'Invalid Company CR/None found', code: 404})
-                await collections.companies.deleteOne({cr: data.cr})
+                let company = await collections.companies.findOne({cr: data.cr})
+                if(company) {
+                    company.clients.map(async (clientId) => {
+                        const client = await collections.clients.findOne({id: clientId})
+                        if(client) {
+                            client.contracts.map((contractId) => {
+                                collections.contracts.deleteOne({id: contractId})
+                            })
+                            collections.clients.deleteOne({id: clientId})
+                        } else res.json({error: `Client ${clientId} not found in database.`, code: 404})
+                    })
+                } else res.json({error: `Company not found`, code: 404})
+                collections.companies.deleteOne({cr: data.cr})
                 return res.json({msg: 'Success', code: 200})
             }
         } else {

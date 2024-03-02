@@ -247,6 +247,11 @@ function CompaniesPage() {
             </div>
             <button onClick={updateTheCompany} className='w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent hover:text-main font-bold hover:scale-110 hover:border-transparent'>Update Company</button>
             <button className='w-full bg-transparent rounded p-2 mt-4 text-white transition duration-300 hover:scale-105 font-bold border-[1px] border-white' onClick={()=>{handleBtnClicks(3)}}>Cancel</button>
+            <button onClick={async ()=>{
+              const response = await axios.post(`${serverUri}/api/companies/delete`, {token: localStorage.getItem('token'), cr: toUpdateCompany.cr})
+              handleBtnClicks(3)
+              console.log(response)
+            }} className='w-full bg-red-500 text-white rounded border-[1px] border-red-500 p-2 mt-4 text-black transition duration-300 hover:bg-transparent hover:text-red-500 font-bold hover:scale-110 hover:border-transparent'>Delete Company</button>
           </div>
         </dialog>
       </div>
