@@ -5,9 +5,12 @@ import { collections } from "../modules/mongo.js"
 import { User } from "./user.js"
 import { generateTenDigitString } from "../modules/helpers.js"
 import Contract from "../schemas/contract.js"
+import cors from "cors"
 
 const router = express.Router()
 router.use(express.json())
+router.use(cors())
+
 router.post("/pay", async (req, res) => {
     const data = req.body
     let contractData = data.contract as Contract

@@ -6,9 +6,11 @@ import { User } from "./user.js"
 import Company from "../schemas/company.js"
 import Client from "../schemas/client.js"
 import { generateTenDigitString } from "../modules/helpers.js"
+import cors from "cors"
 
 const router = express.Router()
 router.use(express.json())
+router.use(cors())
 router.post("/create", async (req, res) => {
     const data = req.body
     let clientData = data.client as Client

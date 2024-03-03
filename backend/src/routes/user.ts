@@ -2,6 +2,7 @@ import express from "express"
 import jwt from 'jsonwebtoken'
 import config from "../config.js"
 import { collections } from "../modules/mongo.js"
+import cors from "cors"
 export interface User {
     username: string,
     password: string,
@@ -9,6 +10,8 @@ export interface User {
 
 
 const router = express.Router()
+
+router.use(cors())
 
 router.get("/authenticate", async (req, res) => {
     const username = req.query.username

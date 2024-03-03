@@ -3,6 +3,7 @@ import multer from 'multer';
 import path from 'path';
 import { Request, Response } from 'express';
 import config from '../config';
+import cors from 'cors'
 
 const upload = multer({ 
   dest: "uploads/",
@@ -30,6 +31,8 @@ const router = express.Router();
 // Middleware to serve uploaded files statically
 router.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+
+router.use(cors())
 function uploadFiles(req: Request, res: Response) {
   // Check if files were uploaded
   if (!req.files || req.files.length === 0) {
