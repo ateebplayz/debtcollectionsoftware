@@ -1,5 +1,6 @@
 const config = {
-    jwtKey:'JWT SIGN KEY TOKEN THINGY HERE',
-    mongoUri: 'MONGODB CONFIGURATION URL HERE'
+    jwtKey:'JWT KEY',
+    mongoUri: 'MONGOURI',
+    backendUri: 'BACKEND URI'
 }
 export default config

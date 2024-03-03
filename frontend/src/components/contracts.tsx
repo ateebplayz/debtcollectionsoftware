@@ -206,7 +206,7 @@ function ContractsPage() {
               <ul className={`${open ? " flex shadow menu dropdown-content z-[1] rounded-box w-full bg-[rgba(149,165,166,1)] border-2 border-base-100 font-bold text-black" : 'hidden' }`}>
                 {
                   companies.map((company, index) => (
-                    <li onClick={()=>{setOpen(false); setDropdownText(company.name); handleDropdownChange(company.cr, 'companyCr')}} tabIndex={index} className="transition duration-500 rounded-xl hover:bg-base-100 hover:text-white"><a>{company.name}</a></li>
+                    <li key={index} onClick={()=>{setOpen(false); setDropdownText(company.name); handleDropdownChange(company.cr, 'companyCr')}} tabIndex={index} className="transition duration-500 rounded-xl hover:bg-base-100 hover:text-white"><a>{company.name}</a></li>
                   ))
                 }
               </ul>
@@ -216,7 +216,7 @@ function ContractsPage() {
               <ul className={`${open2 ? "flex shadow menu dropdown-content z-[1] rounded-box w-full bg-[rgba(149,165,166,1)] border-2 border-base-100 font-bold text-black" : 'hidden' }`}>
                 {
                   fetchLocalClients(contract.companyCr).map((client, index) => (
-                    <li onClick={()=>{setOpen(false); setDropdownText2(client.name); handleDropdownChange(client.id, 'clientId')}} tabIndex={index} className="transition duration-500 rounded-xl hover:bg-base-100 hover:text-white"><a>{client.name}</a></li>
+                    <li key={index} onClick={()=>{setOpen(false); setDropdownText2(client.name); handleDropdownChange(client.id, 'clientId')}} tabIndex={index} className="transition duration-500 rounded-xl hover:bg-base-100 hover:text-white"><a>{client.name}</a></li>
                   ))
                 }
               </ul>
@@ -257,7 +257,7 @@ function ContractsPage() {
             <p className="py-4">Below are the installments this contract has. Green Ones have been paid. You can mark one paid by clicking the button.</p>
             <div className="flex justify-center items-center flex-col">
                 {localContract.installments.map((installment, index) => (
-                  <div className={`${!installment.paid ? 'bg-[rgba(149,165,166,0.7)]' : 'bg-emerald-400'} border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl text-white p-2 mt-3 border-none w-full flex justify-between`}>
+                  <div key={index} className={`${!installment.paid ? 'bg-[rgba(149,165,166,0.7)]' : 'bg-emerald-400'} border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl text-white p-2 mt-3 border-none w-full flex justify-between`}>
                     <h1>{installment.amount} OMR [{installment.date}]</h1>
                     {!installment.paid ? 
                     <h1 onClick={async () => {

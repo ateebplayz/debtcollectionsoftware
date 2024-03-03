@@ -148,4 +148,64 @@ router.get("/fetch", async (req, res) => {
         return res.json({ error: 'Internal Server Error', code:500 })
     }
 })
+router.get("/fetch/specific", async (req, res) => {
+    const data = req.query as {token: string, requirement: string}
+    try {
+        const token = data.token
+        if (!token) {
+            return res.json({ error: 'Token is missing', code: 404 })
+        }
+        const verified = jwt.verify(token, config.jwtKey) as User
+        if (verified) {
+            if (data.requirement == '10d' || data.requirement == 'today' || data.requirement == 'overdue') {
+                const contracts = await collections.contracts.find().toArray();
+                let returnContracts: Array<{contract: Contract, time: number}> = [];
+        
+                contracts.forEach((contract, index) => {
+                    let timeDifference = Date.parse(contract.date) - Date.now()
+                    let timeRemaining = Math.ceil(timeDifference / (1000 * 60 * 60 * 24))
+                    switch(data.requirement) {
+                        case '10d':
+                            if(timeRemaining <= 10 && timeRemaining >= 1) {
+                                returnContracts.push({
+                                    contract: contract,
+                                    time: timeRemaining
+                                })
+                            }
+                            break
+                        case 'today':
+                            if(timeRemaining == 0) {
+                                returnContracts.push({
+                                    contract: contract,
+                                    time: timeRemaining
+                                })
+                            }
+                            break
+                        case 'overdue':
+                            if(timeRemaining < 0) {
+                                returnContracts.push({
+                                    contract: contract,
+                                    time: timeRemaining
+                                })
+                            }
+                            break
+                    }
+                })
+        
+                return res.json({ data: returnContracts, code: 200 });
+            } else {
+                return res.json({ error: 'Invalid requirement/none found. Accepted terms are 10d, today, overdue', code: 200 });
+            }
+        } else {
+            return res.json({ error: 'Unknown error occurred', code: 0 });
+        }
+        
+    } catch (error: any) {
+        if (error.name === 'JsonWebTokenError') {
+            return res.json({ error: 'Invalid token format', code: 400 })
+        }
+        console.error(error)
+        return res.json({ error: 'Internal Server Error', code:500 })
+    }
+})
 export default router;

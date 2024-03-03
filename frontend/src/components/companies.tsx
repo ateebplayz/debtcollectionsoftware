@@ -224,8 +224,8 @@ function CompaniesPage() {
             <p className="py-4">Below is a list of all the clients part of company with CR {company.cr}</p>
             <div>
               {
-                localCompany.clients.map((clientId) => (
-                  <div className="bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl  text-white p-4 w-full mt-3 border-none">{getClient(clientId).name} ({getClient(clientId).cr}) [{getClient(clientId).id}]</div>
+                localCompany.clients.map((clientId, index) => (
+                  <div key={index} className="bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl  text-white p-4 w-full mt-3 border-none">{getClient(clientId).name} ({getClient(clientId).cr}) [{getClient(clientId).id}]</div>
                 ))
               }
             </div>
@@ -271,7 +271,7 @@ function CompaniesPage() {
             </thead>
             <tbody className="overflow-y-scroll">
               {companies.length > 0 ? companies.map((company,index) => (
-                <tr tabIndex={index}>
+                <tr key={index} tabIndex={index}>
                   <th>{company.name}</th>
                   <td>{company.cr}</td>
                   <td>{company.address}</td>

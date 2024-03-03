@@ -240,7 +240,7 @@ function ClientsPage() {
               <ul className={`${open ? " flex shadow menu dropdown-content z-[1] rounded-box w-full bg-[rgba(149,165,166,1)] border-2 border-base-100 font-bold text-black" : 'hidden' }`}>
                 {
                   companies.map((company, index) => (
-                    <li onClick={()=>{setOpen(false); setDropdownText(company.name); handleDropdownChange(company.cr, 'companyCr')}} tabIndex={index} className="transition duration-500 rounded-xl hover:bg-base-100 hover:text-white"><a>{company.name}</a></li>
+                    <li key={index} onClick={()=>{setOpen(false); setDropdownText(company.name); handleDropdownChange(company.cr, 'companyCr')}} tabIndex={index} className="transition duration-500 rounded-xl hover:bg-base-100 hover:text-white"><a>{company.name}</a></li>
                   ))
                 }
               </ul>
@@ -267,8 +267,8 @@ function ClientsPage() {
             <h3 className="font-bold text-lg">Client Contracts</h3>
             <p className="py-4">Below are the contracts this client is a part of</p>
             <div className="flex justify-center items-center flex-col">
-                {localClient.contracts.map((contract) => (
-                  <div className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl text-white p-2 mt-3 border-none w-full'>
+                {localClient.contracts.map((contract, index) => (
+                  <div key={index} className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl text-white p-2 mt-3 border-none w-full'>
                     <h1>{getContract(contract).id} ({getContract(contract).amount} OMR) [{getContract(contract).date}]</h1>
                   </div>
                 ))}
@@ -291,6 +291,11 @@ function ClientsPage() {
             </div>
             <button onClick={handleUpdate} className='w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent hover:text-main font-bold hover:scale-110 hover:border-transparent'>Update Client</button>
             <button className='w-full bg-transparent rounded p-2 mt-4 text-white transition duration-300 hover:scale-105 font-bold border-[1px] border-white' onClick={()=>{handleBtnClicks(4)}}>Cancel</button>
+            <button onClick={async () => {
+              const resp = await axios.post(`${serverUri}/api/clients/delete`, {id: updatedClient.id, token: localStorage.getItem('token')})
+              handleBtnClicks(4)
+              console.log(resp.data)
+            }} className='w-full text-white bg-red-500 rounded border-[1px] border-red-500 p-2 mt-4 text-black transition duration-300 hover:bg-transparent hover:text-main font-bold hover:scale-110 hover:border-transparent'>Delete Client</button>
           </div>
         </dialog>
       </div>
@@ -311,7 +316,7 @@ function ClientsPage() {
             </thead>
             <tbody className="overflow-y-scroll">
               {clients.length > 0 ? clients.map((client,index) => (
-                <tr tabIndex={index}>
+                <tr tabIndex={index} key={index}>
                   <th>{client.name}</th>
                   <td>{client.cr}</td>
                   <td>{client.companyCr}</td>

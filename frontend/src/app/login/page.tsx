@@ -10,11 +10,13 @@ function sleep(ms: number) {
 
 function LoginPage() {
   const router = useRouter()
-  const run = () => {
-    const token = localStorage.getItem('token')
-    if(token) router.push('/logout')
-  }
-  run()
+  React.useEffect(() => {
+    const run = () => {
+      const token = localStorage.getItem('token')
+      if (token) router.push('/logout')
+    }
+    run()
+  }, [])
   const [username, setUsername] = React.useState('')
   const [password, setPassword] = React.useState('')
   const [shake, setShake] = React.useState(false)
