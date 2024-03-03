@@ -4,8 +4,10 @@ import config from "../config.js"
 import { collections } from "../modules/mongo.js"
 import { User } from "./user.js"
 import Company from "../schemas/company.js"
+import cors from "cors"
 
 const router = express.Router()
+router.use(cors())
 router.use(express.json())
 router.post("/create", async (req, res) => {
     const data = req.body
