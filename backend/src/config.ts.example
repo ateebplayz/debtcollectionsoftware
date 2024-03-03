@@ -1,0 +1,6 @@
+const config = {
+    jwtKey:'JWT KEY',
+    mongoUri: 'MONGOURI',
+    backendUri: 'BACKEND URI'
+}
+export default config
