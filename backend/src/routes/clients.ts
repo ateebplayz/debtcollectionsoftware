@@ -27,14 +27,21 @@ router.post("/create", async (req, res) => {
                 return res.json({error: 'Invalid Username/Password', code: 401})
             } else {
                 if (!clientData || !Object.values(clientData).every(value => value !== '')) {
-                    return res.json({ error: 'Invalid Client Object/None found', code: 404 });
+                    return res.json({ error: 'Invalid Client Input', code: 404 });
                 }
                 let oldCompany = await collections.companies.findOne({cr: clientData.companyCr})
-                if(oldCompany) {
-                    oldCompany.clients.push(clientData.id)
-                    collections.companies.updateOne({cr: clientData.companyCr}, {$set: oldCompany})
-                    await collections.clients.insertOne(clientData)
-                    return res.json({msg: 'Success', code: 200})
+
+                const clientX = await collections.clients.findOne({id: clientData.id})
+                const clientY = await collections.clients.findOne({contact: {number: clientData.contact.number}})
+                if(clientX || clientY) {
+                    return res.json({error: 'A client with this ID or Phone number already exists', code: 402})
+                } else {
+                    if(oldCompany) {
+                        oldCompany.clients.push(clientData.id)
+                        collections.companies.updateOne({cr: clientData.companyCr}, {$set: oldCompany})
+                        await collections.clients.insertOne(clientData)
+                        return res.json({msg: 'Success', code: 200})
+                    }
                 }
             }
         } else {
@@ -63,7 +70,7 @@ router.post("/update", async (req, res) => {
                 return res.json({error: 'Invalid Username/Password', code: 401})
             } else {
                 if (!clientData || !Object.values(clientData).every(value => value !== '')) {
-                    return res.json({ error: 'Invalid Client Object/None found', code: 404 });
+                    return res.json({ error: 'Invalid Client Input', code: 404 });
                 }
                 let client = await collections.clients.findOne({id: clientData.id})
                 if(client) {

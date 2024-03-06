@@ -12,6 +12,7 @@ function sleep (ms: number) {
   return new Promise((res) => setTimeout(res, ms))
 }
 function CompaniesPage() {
+  const [error, setError] = React.useState('a')
   const fileInputRef = React.useRef<HTMLInputElement>(null)
   const [disabled, setDisabled] = React.useState(false)
   const [clients, setClients] = React.useState<Array<Client>>([])
@@ -90,6 +91,7 @@ function CompaniesPage() {
       const response = await axios.post(`${serverUri}/api/companies/create`, {company: company, token: localStorage.getItem('token')})
       console.log(response.data)
       if(response.data.code == 200) {
+        setError('')
         handleBtnClicks(1)
         setCompany({
           name: '',
@@ -106,6 +108,7 @@ function CompaniesPage() {
           fileInputRef.current.value = ''; // Clear the file input value
         }
       } else {
+        setError(response.data.error)
         setShake(true)
         await sleep(500)
         setShake(false)
@@ -120,6 +123,7 @@ function CompaniesPage() {
       case 0:
         break
       case 1:
+        setError('');
         (document.getElementById('company_modal') as HTMLDialogElement)?.close()
         break;
       case 2:
@@ -220,6 +224,11 @@ function CompaniesPage() {
           <div className="modal-box px-8 bg-bg ">
             <h3 className="font-bold text-lg">Create a Company</h3>
             <p className="py-4">You must fill out all the fields.</p>
+            {error !== '' ?
+            <div className='w-full flex justify-center items-center p-2 bg-red-200 border-2 border-red-500 rounded-lg text-red-500'>
+              <p>{error}</p>
+            </div>
+            : <></>}
             <div className="w-full justify-between items-center flex placeholder-tertiary">
               <input value={company.name} placeholder="Company Name *" onChange={(e)=>{handleInputChange(e, 'name')}} required={true} className='bg-tertiary border-[1px] placeholder-black border-tertiary rounded-xl text-black p-2 mr-1 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100 placeholder-black'></input>
               <input value={company.cr} placeholder="Company CR Number *" onChange={(e)=>{handleInputChange(e, 'cr')}} className='bg-tertiary border-[1px] placeholder-black border-tertiary rounded-xl ml-1 text-black p-2 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
@@ -237,7 +246,7 @@ function CompaniesPage() {
         <dialog id="company_client_modal" className={`modal ${shake ? 'animate-shake' : ''}`}>
           <div className="modal-box px-8 bg-bg">
             <h3 className="font-bold text-lg">Clients</h3>
-            <p className="py-4">Below is a list of all the clients part of company with CR {company.cr}</p>
+            <p className="py-4">Below is a list of all the clients part of company with CR {localCompany.cr}</p>
             <div>
               {
                 localCompany.clients.map((clientId, index) => (

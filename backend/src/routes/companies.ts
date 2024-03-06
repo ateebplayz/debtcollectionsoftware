@@ -23,9 +23,15 @@ router.post("/create", async (req, res) => {
             if(!user) {
                 return res.json({error: 'Invalid Username/Password', code: 401})
             } else {
-                if(!companyData || !companyData.name || !companyData.cr || !companyData.address || !companyData.contact.number || !companyData.contact.person || !companyData.attachment || !companyData.clients || companyData.name == '' || companyData.cr == '' || companyData.address == '' || companyData.contact.number == '' || companyData.contact.person == '' || companyData.attachment == '') return res.json({error: 'Invalid Company Object/None found', code: 404})
-                await collections.companies.insertOne(companyData)
-                return res.json({msg: 'Success', code: 200})
+                if(!companyData || !companyData.name || !companyData.cr || !companyData.address || !companyData.contact.number || !companyData.contact.person || !companyData.attachment || !companyData.clients || companyData.name == '' || companyData.cr == '' || companyData.address == '' || companyData.contact.number == '' || companyData.contact.person == '' || companyData.attachment == '') return res.json({error: 'Invalid Company Input', code: 404})
+                const companyX = await collections.companies.findOne({cr: companyData.cr})
+                const companyY = await collections.companies.findOne({contact: {number: companyData.contact.number}})
+                if(companyX || companyY) {
+                    return res.json({error: 'The company with this CR or Phone Number already exists', code: 402})
+                } else {
+                    await collections.companies.insertOne(companyData)
+                    return res.json({msg: 'Success', code: 200})
+                }
             }
         } else {
             return res.json({error: 'Unknown error occured', code: 0})
@@ -53,7 +59,7 @@ router.post("/update", async (req, res) => {
                 return res.json({error: 'Invalid Username/Password', code: 401})
             } else {
                 let oldCompany = await collections.companies.findOne({cr: companyData.cr})
-                if(!companyData || !companyData.name || !companyData.cr || !companyData.address || !companyData.contact.number || !companyData.contact.person || !companyData.attachment || !companyData.clients) return res.json({error: 'Invalid Company Object/None found', code: 404})
+                if(!companyData || !companyData.name || !companyData.cr || !companyData.address || !companyData.contact.number || !companyData.contact.person || !companyData.attachment || !companyData.clients) return res.json({error: 'Invalid Company Input', code: 404})
                 if(oldCompany) {
                     oldCompany.address = companyData.address
                     oldCompany.attachment = companyData.attachment

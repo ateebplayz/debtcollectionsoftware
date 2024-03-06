@@ -45,12 +45,12 @@ function LoginPage() {
   }
   return (
     <div className='bg-main min-h-screen flex justify-center items-center w-full'>
-        <div className={`flex bg-bg ${shake ? 'animate-shake' : ''} text-white text-center p-8 justify-center items-center rounded-lg flex-col`}>
+        <div className={`flex bg-bg ${shake ? 'animate-shake' : ''} text-black text-center p-8 justify-center items-center rounded-lg flex-col`}>
             <h1 className={`text-4xl font-bold text-black w-full`}>Login</h1>
             <p className='mt-4 w-full text-black'>Please enter your credentials below</p>
-            <input onChange={usernameChange} placeholder='Username' className='bg-[rgba(0,0,0,0.7)] border-[1px] border-[rgba(0,0,0,0.7)]  rounded p-2 w-full mt-6 border-none transition duration-300 hover:cursor-pointer hover:scale-105 focus:cursor-text focus:outline-none focus:scale-110'></input>
-            <input onChange={passwordChange} placeholder='Password' type='password' className='bg-[rgba(0,0,0,0.7)] border-[1px] border-[rgba(0,0,0,0.7)] rounded p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:scale-105 focus:cursor-text focus:outline-none focus:scale-110'></input>
-            <button className='w-full bg-main rounded border-[1px] border-main p-2 mt-4 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent' onClick={() => {handleBtnClick()}}>Login</button>
+            <input onChange={usernameChange} placeholder='Username' className='bg-tertiary border-[1px] border-[rgba(0,0,0,0.7)]  rounded p-2 w-full mt-6 border-none transition duration-300 hover:cursor-pointer hover:scale-105 focus:cursor-text focus:outline-none focus:scale-110 placeholder-black text-black'></input>
+            <input onChange={passwordChange} placeholder='Password' type='password' className='bg-tertiary border-[1px] border-[rgba(0,0,0,0.7)] rounded p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:scale-105 focus:cursor-text focus:outline-none focus:scale-110 placeholder-black'></input>
+            <button className='w-full bg-main rounded border-[1px] border-main p-2 mt-4 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent text-black' onClick={() => {handleBtnClick()}}>Login</button>
         </div>
     </div>
   )

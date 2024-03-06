@@ -12,6 +12,7 @@ function sleep (ms: number) {
   return new Promise((res) => setTimeout(res, ms))
 }
 function ClientsPage() {
+  const [error, setError] = React.useState('')
   const fileInputRef = React.useRef<HTMLInputElement>(null)
   const [open, setOpen] = React.useState(false)
   const [dropdownText, setDropdownText] = React.useState('Company *')
@@ -131,6 +132,7 @@ function ClientsPage() {
       const response = await axios.post(`${serverUri}/api/clients/create`, {client: client, token: localStorage.getItem('token')})
       console.log(response.data)
       if(response.data.code == 200) {
+        setError('')
         handleBtnClicks(1)
         setClient({
           cr: '',
@@ -148,6 +150,7 @@ function ClientsPage() {
           fileInputRef.current.value = ''; // Clear the file input value
         }
       } else {
+        setError(response.data.error)
         setShake(true)
         await sleep(500)
         setShake(false)
@@ -247,6 +250,11 @@ function ClientsPage() {
           <div className="modal-box px-8 bg-bg">
             <h3 className="font-bold text-lg">Create a Client</h3>
             <p className="py-4">You must fill out all the fields.</p>
+            {error !== '' ?
+            <div className='w-full flex justify-center items-center p-2 bg-red-200 border-2 border-red-500 rounded-lg text-red-500'>
+              <p>{error}</p>
+            </div>
+            : <></>}
             <div className="w-full justify-between items-center flex">
               <input value={client.name} placeholder="Client Name *" onChange={(e)=>{handleInputChange(e, 'name')}} required={true} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl text-black p-2 mr-1 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
               <input value={client.cr} placeholder="Client CR No* " onChange={(e)=>{handleInputChange(e, 'cr')}} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl ml-1 text-black p-2 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>

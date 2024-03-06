@@ -31,9 +31,14 @@ router.post("/create", async (req, res) => {
                 let client = await collections.clients.findOne({id: contractData.clientId})
                 if(client) {
                     client.contracts.push(contractData.id)
-                    await collections.contracts.insertOne(contractData)
-                    await collections.clients.updateOne({id: contractData.clientId}, {$set: client})
-                    return res.json({msg: 'Success', code: 200})
+                    const contractX = await collections.contracts.findOne({id: contractData.id})
+                    if(contractX) {
+                        return res.json({error: 'A contract with this ID already exists', code: 402})
+                    } else {
+                        await collections.contracts.insertOne(contractData)
+                        await collections.clients.updateOne({id: contractData.clientId}, {$set: client})
+                        return res.json({msg: 'Success', code: 200})
+                    }
                 } else {
                     return res.json({error: 'Client not found', code: 404})
                 }
