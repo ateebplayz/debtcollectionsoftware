@@ -43,3 +43,16 @@ body {
 .animate-shake {
   animation: shake 0.5s ease-in-out infinite;
 }
+input[type="file"]::file-selector-button {
+  background-color: black;
+  border: none;
+  padding: 0.4rem;
+  border-radius: 0.25rem; /* Change the color to black */
+}
+.custom-upload-button-label input[type="file"] {
+  display: none;
+}
+
+.custom-upload-button-label span {
+  /* Styles for the text next to the upload button */
+}

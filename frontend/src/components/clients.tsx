@@ -12,6 +12,7 @@ function sleep (ms: number) {
   return new Promise((res) => setTimeout(res, ms))
 }
 function ClientsPage() {
+  const fileInputRef = React.useRef<HTMLInputElement>(null)
   const [open, setOpen] = React.useState(false)
   const [dropdownText, setDropdownText] = React.useState('Company *')
   const [disabled, setDisabled] = React.useState(false)
@@ -69,7 +70,7 @@ function ClientsPage() {
     console.log(tempClient)
   }
   const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>, type: 'cr'  | 'name' | 'address' | 'contact number' | 'contact person' | 'attachment') => {
-    let tempClient = client
+    let tempClient = {...client}
     switch(type) {
       case 'cr':
         tempClient.cr = e.target.value
@@ -102,7 +103,7 @@ function ClientsPage() {
     console.log(client)
   }
   const handleUpdateChange = async (e: React.ChangeEvent<HTMLInputElement>, type: 'cr'  | 'name' | 'address' | 'contact number' | 'contact person') => {
-    let tempClient = updatedClient
+    let tempClient = {...updatedClient}
     switch(type) {
       case 'cr':
         tempClient.cr = e.target.value
@@ -131,6 +132,21 @@ function ClientsPage() {
       console.log(response.data)
       if(response.data.code == 200) {
         handleBtnClicks(1)
+        setClient({
+          cr: '',
+          companyCr: '',
+          name: '',
+          id: '',
+          address: '',
+          contact: {
+              number: '',
+              person: ''
+          },
+          attachment: '',
+          contracts: []})
+        if (fileInputRef.current) {
+          fileInputRef.current.value = ''; // Clear the file input value
+        }
       } else {
         setShake(true)
         await sleep(500)
@@ -176,7 +192,7 @@ function ClientsPage() {
   };
   React.useEffect(() => {
     fetchData()
-    const interval = setInterval(fetchData, 10000)
+    const interval = setInterval(fetchData, 1000)
     return () => clearInterval(interval)
   }, [])
   const handleBtnClicks = (btn: number) => {
@@ -225,86 +241,86 @@ function ClientsPage() {
   return (
     <div className='flex justify-start items-start w-full h-full flex-col overflow-y-scroll'>
       <div className='flex justify-between items-start  w-full'>
-        <h1 className='text-3xl font-bold text-white'>Clients</h1>
-        <button className="flex justify-center items-center bg-white rounded-xl text-black p-2 font-bold transition duration-500 hover:scale-125 hover:bg-transparent hover:text-white" onClick={()=>{(document.getElementById('client_modal') as HTMLDialogElement)?.showModal(); fetchData()}}><FaPlus size={18}/></button>
+        <h1 className='text-3xl font-bold'>Clients</h1>
+        <button className="flex justify-center items-center bg-tertiary rounded-xl text-black p-2 font-bold transition duration-500 hover:scale-125 hover:bg-transparent hover:text-black" onClick={()=>{(document.getElementById('client_modal') as HTMLDialogElement)?.showModal(); fetchData()}}><FaPlus size={18}/></button>
         <dialog id="client_modal" className={`modal ${shake ? 'animate-shake' : ''}`}>
-          <div className="modal-box px-8">
+          <div className="modal-box px-8 bg-bg">
             <h3 className="font-bold text-lg">Create a Client</h3>
             <p className="py-4">You must fill out all the fields.</p>
             <div className="w-full justify-between items-center flex">
-              <input placeholder="Client Name *" onChange={(e)=>{handleInputChange(e, 'name')}} required={true} className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl text-white p-2 mr-1 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
-              <input placeholder="Client CR No* " onChange={(e)=>{handleInputChange(e, 'cr')}} className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl ml-1 text-white p-2 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
+              <input value={client.name} placeholder="Client Name *" onChange={(e)=>{handleInputChange(e, 'name')}} required={true} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl text-black p-2 mr-1 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
+              <input value={client.cr} placeholder="Client CR No* " onChange={(e)=>{handleInputChange(e, 'cr')}} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl ml-1 text-black p-2 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
             </div>
             <div className={`w-full`} onClick={toggleOpen}>
-              <summary className="btn bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl  text-white p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 text-start focus:opacity-100" onClick={toggleOpen}>{dropdownText}</summary>
-              <ul className={`${open ? " flex shadow menu dropdown-content z-[1] rounded-box w-full bg-[rgba(149,165,166,1)] border-2 border-base-100 font-bold text-black" : 'hidden' }`}>
+              <summary className="btn bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl text-black p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 text-start focus:opacity-100 hover:bg-tertiary" onClick={toggleOpen}>{dropdownText}</summary>
+              <ul className={`${open ? " flex mt-2 bg-tertiary shadow menu dropdown-content z-[1] rounded-box w-full border-2 border-main font-bold text-black" : 'hidden' }`}>
                 {
                   companies.map((company, index) => (
-                    <li key={index} onClick={()=>{setOpen(false); setDropdownText(company.name); handleDropdownChange(company.cr, 'companyCr')}} tabIndex={index} className="transition duration-500 rounded-xl hover:bg-base-100 hover:text-white"><a>{company.name}</a></li>
+                    <li key={index} onClick={()=>{setOpen(false); setDropdownText(company.name); handleDropdownChange(company.cr, 'companyCr')}} tabIndex={index} className="transition duration-500 rounded-xl hover:text-black hover:bg-bg"><a>{company.name}</a></li>
                   ))
                 }
               </ul>
             </div>
-            <input placeholder="Address *" onChange={(e)=>{handleInputChange(e, 'address')}} className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl  text-white p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
+            <input value={client.address} placeholder="Address *" onChange={(e)=>{handleInputChange(e, 'address')}} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl  text-black p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
             <div className="w-full justify-between items-center flex">
-              <input placeholder="Contact Number *" onChange={(e)=>{handleInputChange(e, 'contact number')}} required={true} className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl text-white p-2 mr-1 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
-              <input placeholder="Contact Name *" onChange={(e)=>{handleInputChange(e, 'contact person')}} className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl ml-1 text-white p-2 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
+              <input value={client.contact.number} placeholder="Contact Number *" onChange={(e)=>{handleInputChange(e, 'contact number')}} required={true} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl text-black p-2 mr-1 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
+              <input value={client.contact.person} placeholder="Contact Name *" onChange={(e)=>{handleInputChange(e, 'contact person')}} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl ml-1 text-black p-2 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
             </div>
-            <input placeholder="Attachment *"  formEncType="multipart/form-data" onChange={(e)=>{handleInputChange(e, 'attachment')}} type="file" accept=".pdf" className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl  text-white p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
-            <button onClick={handleCreation} className='w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent hover:text-main font-bold hover:scale-110 hover:border-transparent'>Add Client</button>
-            <button className='w-full bg-transparent rounded p-2 mt-4 text-white transition duration-300 hover:scale-105 font-bold border-[1px] border-white' onClick={()=>{handleBtnClicks(1)}}>Cancel</button>
+            <input ref={fileInputRef} placeholder="Attachment *"  formEncType="multipart/form-data" onChange={(e)=>{handleInputChange(e, 'attachment')}} type="file" accept=".pdf" className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl  text-black p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
+            <button onClick={handleCreation} className={`w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent hover:text-black font-bold hover:scale-110 hover:border-transparent ${disabled ? 'pointer-events-none opacity-50 cursor-not-allowed' : ''}`}>Add Client</button>
+            <button className={`w-full bg-transparent rounded p-2 mt-4 text-black transition duration-300 hover:scale-105 font-bold border-[1px] border-black ${disabled ? 'pointer-events-none opacity-50 cursor-not-allowed' : ''}`} onClick={()=>{handleBtnClicks(1)}}>Cancel</button>
           </div>
         </dialog>
         <dialog id="client_address_modal" className={`modal ${shake ? 'animate-shake' : ''}`}>
-          <div className="modal-box px-8">
+          <div className="modal-box px-8 bg-bg">
             <h3 className="font-bold text-lg">Client Address</h3>
             <p className="py-4">{localClient.address}</p>
-            <button onClick={()=>{handleBtnClicks(2)}} className='w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent hover:text-main font-bold hover:scale-110 hover:border-transparent'>Close</button>
+            <button onClick={()=>{handleBtnClicks(2)}} className='w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent'>Close</button>
           </div>
         </dialog>
         <dialog id="client_contracts_modal" className={`modal ${shake ? 'animate-shake' : ''}`}>
-          <div className="modal-box px-8">
+          <div className="modal-box px-8 bg-bg">
             <h3 className="font-bold text-lg">Client Contracts</h3>
             <p className="py-4">Below are the contracts this client is a part of</p>
             <div className="flex justify-center items-center flex-col">
                 {localClient.contracts.map((contract, index) => (
-                  <div key={index} className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl text-white p-2 mt-3 border-none w-full'>
-                    <h1>{getContract(contract).id} ({getContract(contract).amount} OMR) [{getContract(contract).date}]</h1>
+                  <div key={index} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl text-black p-2 mt-3 border-none w-full'>
+                    <h1 className="text-black">{getContract(contract).id} ({getContract(contract).amount} OMR) [{getContract(contract).date}]</h1>
                   </div>
                 ))}
             </div>
-            <button onClick={()=>{handleBtnClicks(3)}} className='w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent hover:text-main font-bold hover:scale-110 hover:border-transparent'>Close</button>
+            <button onClick={()=>{handleBtnClicks(3)}} className='w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent'>Close</button>
           </div>
         </dialog>
         <dialog id="client_update_modal" className={`modal ${shake ? 'animate-shake' : ''}`}>
-          <div className="modal-box px-8">
+          <div className="modal-box px-8 bg-bg">
             <h3 className="font-bold text-lg">Update a Client</h3>
             <p className="py-4">You must fill out any of the fields.</p>
             <div className="w-full justify-between items-center flex">
-              <input placeholder={updatedClient.name} onChange={(e)=>{handleUpdateChange(e, 'name')}} required={true} className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl text-white p-2 mr-1 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
-              <input placeholder={updatedClient.cr} onChange={(e)=>{handleUpdateChange(e, 'cr')}} className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl ml-1 text-white p-2 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
+              <input value={updatedClient.name} onChange={(e)=>{handleUpdateChange(e, 'name')}} required={true} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl text-black p-2 mr-1 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
+              <input value={updatedClient.cr} onChange={(e)=>{handleUpdateChange(e, 'cr')}} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl ml-1 text-black p-2 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
             </div>
-            <input placeholder={updatedClient.address} onChange={(e)=>{handleUpdateChange(e, 'address')}} className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl  text-white p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
+            <input value={updatedClient.address} onChange={(e)=>{handleUpdateChange(e, 'address')}} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl  text-black p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
             <div className="w-full justify-between items-center flex">
-              <input placeholder={updatedClient.contact.number} onChange={(e)=>{handleUpdateChange(e, 'contact number')}} required={true} className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl text-white p-2 mr-1 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
-              <input placeholder={updatedClient.contact.person} onChange={(e)=>{handleUpdateChange(e, 'contact person')}} className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl ml-1 text-white p-2 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
+              <input value={updatedClient.contact.number} onChange={(e)=>{handleUpdateChange(e, 'contact number')}} required={true} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl text-black p-2 mr-1 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
+              <input value={updatedClient.contact.person} onChange={(e)=>{handleUpdateChange(e, 'contact person')}} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl ml-1 text-black p-2 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
             </div>
-            <button onClick={handleUpdate} className='w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent hover:text-main font-bold hover:scale-110 hover:border-transparent'>Update Client</button>
-            <button className='w-full bg-transparent rounded p-2 mt-4 text-white transition duration-300 hover:scale-105 font-bold border-[1px] border-white' onClick={()=>{handleBtnClicks(4)}}>Cancel</button>
+            <button onClick={handleUpdate} className='w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent'>Update Client</button>
+            <button className='w-full bg-transparent rounded p-2 mt-4 text-black transition duration-300 hover:scale-105 font-bold border-[1px] border-black' onClick={()=>{handleBtnClicks(4)}}>Cancel</button>
             <button onClick={async () => {
-              const resp = await axios.post(`${serverUri}/api/clients/delete`, {id: updatedClient.id, token: localStorage.getItem('token')})
               handleBtnClicks(4)
+              const resp = await axios.post(`${serverUri}/api/clients/delete`, {id: updatedClient.id, token: localStorage.getItem('token')})
               console.log(resp.data)
-            }} className='w-full text-white bg-red-500 rounded border-[1px] border-red-500 p-2 mt-4 text-black transition duration-300 hover:bg-transparent hover:text-main font-bold hover:scale-110 hover:border-transparent'>Delete Client</button>
+            }} className='w-full text-black bg-red-500 rounded border-[1px] border-red-500 p-2 mt-4 text-black transition duration-300 hover:bg-transparent hover:text-red-500 font-bold hover:scale-110 hover:border-transparent'>Delete Client</button>
           </div>
         </dialog>
       </div>
       <div className="flex justify-center items-center mt-12 w-full mb-12 ">
         <div className="overflow-x-auto overflow-y-scroll w-full">
-          <table className="table table-zebra overflow-y-scroll w-full">
+          <table className="table text-black overflow-y-scroll w-full">
             {/* head */}
             <thead>
-              <tr>
+              <tr className="text-black">
                 <th>Name</th>
                 <th>CR</th>
                 <th>Company Cr</th>
@@ -324,7 +340,7 @@ function ClientsPage() {
                   <td><a onClick={()=>{(document.getElementById('client_address_modal') as HTMLDialogElement)?.showModal(); setLocalClient(client)}} className="underline cursor-pointer">View</a></td>
                   <td><a onClick={()=>{(document.getElementById('client_contracts_modal') as HTMLDialogElement)?.showModal(); setLocalClient(client)}} className="underline cursor-pointer">View</a></td>
                   <td><a href={client.attachment} className="underline cursor-pointer">View</a></td>
-                  <td><a onClick={()=>{(document.getElementById('client_update_modal') as HTMLDialogElement).showModal(); setUpdatedClient(client)}} className="underline cursor-pointer transition duration-500 hover:opacity-50">Edit</a></td>
+                  <td><a onClick={()=>{setUpdatedClient(client);(document.getElementById('client_update_modal') as HTMLDialogElement).showModal()}} className="underline cursor-pointer transition duration-500 hover:opacity-50">Edit</a></td>
                 </tr>
               )) : ''}
             </tbody>

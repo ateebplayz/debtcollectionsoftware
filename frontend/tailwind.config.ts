@@ -9,8 +9,9 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        main: '#ffffff',
-        bg: '#0F0F0F',
+        main: '#cebebe',
+        bg: '#ece2d0',
+        tertiary: '#d5b9b2',
         text: '#D3D3D3',
         successColor: '#00FF00',
         errorColor: '#FF0000'

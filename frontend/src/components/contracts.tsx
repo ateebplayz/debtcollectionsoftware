@@ -102,6 +102,15 @@ function ContractsPage() {
       const response = await axios.post(`${serverUri}/api/contracts/create`, {contract: contractWithInstallment, token: localStorage.getItem('token')})
       console.log(response.data)
       if(response.data.code == 200) {
+        setContract({
+          companyCr: '',
+          clientId: '',
+          id: '',
+          installments: [],
+          date: '',
+          amount: 0,
+          description: '',
+          percentage: 0,})
         handleBtnClicks(1)
       } else {
         setShake(true)
@@ -195,69 +204,76 @@ function ContractsPage() {
   return (
     <div className='flex justify-start items-start max-w-full h-full flex-col overflow-y-scroll'>
       <div className='flex justify-between items-start  w-full'>
-        <h1 className='text-3xl font-bold text-white'>Contracts</h1>
-        <button className="flex justify-center items-center bg-white rounded-xl text-black p-2 font-bold transition duration-500 hover:scale-125 hover:bg-transparent hover:text-white" onClick={()=>(document.getElementById('contract_modal') as HTMLDialogElement)?.showModal()}><FaPlus size={18}/></button>
+        <h1 className='text-3xl font-bold'>Contracts</h1>
+        <button className="flex justify-center items-center bg-tertiary rounded-xl text-black p-2 font-bold transition duration-500 hover:scale-125 hover:bg-transparent hover:text-black" onClick={()=>(document.getElementById('contract_modal') as HTMLDialogElement)?.showModal()}><FaPlus size={18}/></button>
         <dialog id="contract_modal" className={`modal ${shake ? 'animate-shake' : ''}`}>
-          <div className="modal-box px-8">
+          <div className="modal-box px-8 bg-bg">
             <h3 className="font-bold text-lg">Create a Contract</h3>
             <p className="py-4">You must fill out all the fields.</p>
             <div className={`w-full`} onClick={()=>{toggleOpen(); setDropdownText2('Client *'); setContract({...contract, clientId: ''})}}>
-              <summary className="btn bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl  text-white p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 text-start focus:opacity-100" onClick={toggleOpen}>{dropdownText}</summary>
-              <ul className={`${open ? " flex shadow menu dropdown-content z-[1] rounded-box w-full bg-[rgba(149,165,166,1)] border-2 border-base-100 font-bold text-black" : 'hidden' }`}>
+              <summary className="btn bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 text-start focus:opacity-100 hover:bg-tertiary text-black" onClick={toggleOpen}>{dropdownText}</summary>
+              <ul className={`${open ? " flex mt-2 shadow menu dropdown-content z-[1] rounded-box w-full bg-tertiary border-2 border-bg font-bold text-black" : 'hidden' }`}>
                 {
                   companies.map((company, index) => (
-                    <li key={index} onClick={()=>{setOpen(false); setDropdownText(company.name); handleDropdownChange(company.cr, 'companyCr')}} tabIndex={index} className="transition duration-500 rounded-xl hover:bg-base-100 hover:text-white"><a>{company.name}</a></li>
+                    <li key={index} onClick={()=>{setOpen(false); setDropdownText(company.name); handleDropdownChange(company.cr, 'companyCr')}} tabIndex={index} className="transition duration-500 rounded-xl hover:bg-base-100 hover:bg-bg"><a>{company.name}</a></li>
                   ))
                 }
               </ul>
             </div>
             <div className={`w-full ${contract.companyCr == '' ? 'pointer-events-none opacity-50' : ''}`} onClick={toggleOpen2}>
-              <summary className="btn bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl  text-white p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 text-start focus:opacity-100" onClick={toggleOpen2}>{dropdownText2}</summary>
-              <ul className={`${open2 ? "flex shadow menu dropdown-content z-[1] rounded-box w-full bg-[rgba(149,165,166,1)] border-2 border-base-100 font-bold text-black" : 'hidden' }`}>
+              <summary className="btn bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 text-start focus:opacity-100 hover:bg-tertiary text-black" onClick={toggleOpen2}>{dropdownText2}</summary>
+              <ul className={`${open2 ? " flex mt-2 shadow menu dropdown-content z-[1] rounded-box w-full bg-tertiary border-2 border-bg font-bold text-black" : 'hidden' }`}>
                 {
                   fetchLocalClients(contract.companyCr).map((client, index) => (
-                    <li key={index} onClick={()=>{setOpen(false); setDropdownText2(client.name); handleDropdownChange(client.id, 'clientId')}} tabIndex={index} className="transition duration-500 rounded-xl hover:bg-base-100 hover:text-white"><a>{client.name}</a></li>
+                    <li key={index} onClick={()=>{setOpen(false); setDropdownText2(client.name); handleDropdownChange(client.id, 'clientId')}} tabIndex={index} className="transition duration-500 rounded-xl hover:bg-base-100 hover:text-black"><a>{client.name}</a></li>
                   ))
                 }
               </ul>
             </div>
-            <input placeholder="Description *" onChange={(e)=>{handleInputChange(e, 'description')}} className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl  text-white p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
+            <input placeholder="Description *" onChange={(e)=>{handleInputChange(e, 'description')}} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl  text-black p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
             <div className="w-full justify-between items-center flex">
-              <input placeholder="Amount *" type="number" onChange={(e)=>{handleInputChange(e, 'amount')}} required={true} className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl text-white p-2 mr-1 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
-              <input placeholder="Percentage *" type="number" onChange={(e)=>{handleInputChange(e, 'percentage')}} className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl ml-1 text-white p-2 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
+              <input placeholder="Amount *" type="number" onChange={(e)=>{handleInputChange(e, 'amount')}} required={true} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl text-black p-2 mr-1 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
+              <input placeholder="Percentage *" type="number" onChange={(e)=>{handleInputChange(e, 'percentage')}} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl ml-1 text-black p-2 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
             </div>
-            <input placeholder="Deadline *"  formEncType="multipart/form-data" onChange={(e)=>{handleInputChange(e, 'date')}} type="date" className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl  text-white p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
-            <button onClick={()=>(document.getElementById('installment_modal') as HTMLDialogElement)?.showModal()} className={`bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl  text-white p-2 w-full mt-3 border-none transition duration-300 ${!disabled2 ? 'hover:cursor-pointer hover:opacity-75 focus:outline-none focus:scale-105 focus:opacity-100' : ' pointer-events-none cursor-not-allowed hover:cursor-not-allowed opacity-90'}`}>{disabled2 ? 'Please insert an amount' : installments.length < 0 ? 'Configure Installments' : 'Total Installments Configured : ' + installments.length}</button>
-            <button onClick={handleCreation} className='w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent hover:text-main font-bold hover:scale-110 hover:border-transparent'>Add Contract</button>
-            <button className='w-full bg-transparent rounded p-2 mt-4 text-white transition duration-300 hover:scale-105 font-bold border-[1px] border-white' onClick={()=>{handleBtnClicks(1)}}>Cancel</button>
+            <input placeholder="Deadline *"  formEncType="multipart/form-data" onChange={(e)=>{handleInputChange(e, 'date')}} type="date" className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl text-black p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
+            <button onClick={()=>(document.getElementById('installment_modal') as HTMLDialogElement)?.showModal()} className={`bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl text-black p-2 w-full mt-3 border-none transition duration-300 ${!disabled2 ? 'hover:cursor-pointer hover:opacity-75 focus:outline-none focus:scale-105 focus:opacity-100' : ' pointer-events-none cursor-not-allowed hover:cursor-not-allowed opacity-50'}`}>{disabled2 ? 'Please insert an amount' : installments.length < 0 ? 'Configure Installments' : 'Total Installments Configured : ' + installments.length}</button>
+            <button onClick={handleCreation} className={`w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent ${disabled ? 'pointer-events-none opacity-50 cursor-not-allowed' : ''}`}>Add Contract</button>
+            <button className={`w-full bg-transparent rounded p-2 mt-4 text-black transition duration-300 hover:scale-105 font-bold border-[1px] border-black ${disabled ? 'pointer-events-none opacity-50 cursor-not-allowed' : ''}`} onClick={()=>{handleBtnClicks(1)}}>Cancel</button>
           </div>
         </dialog>
         <dialog id="installment_modal" className={`modal`}>
-          <div className="modal-box px-8">
+          <div className="modal-box px-8 bg-bg">
             <h3 className="font-bold text-lg">Installments</h3>
             <p className="py-4">Create an Installment, or remove one by clicking on the buttons below! Make sure to not go over initial Amount</p>
-            <button className="bg-white rounded-xl p-2 text-black font-bold mr-2 transition duration-500 hover:scale-105 cursor-pointer active:scale-90" onClick={() => {let oldIns = installments;oldIns.push({amount: 0, date: Date(), paid: false}); setInstallments(oldIns); console.log(installments)}}>New Installment</button>
-            <button className="bg-white rounded-xl p-2 text-black font-bold ml-2 transition duration-500 hover:scale-105 cursor-pointer active:scale-90" onClick={() => {let oldIns = installments;oldIns.pop(); setInstallments(oldIns); setTotalInstallmentAmount(totalInstallmentAmount - oldIns[oldIns.length - 1].amount)}}>Remove Installment</button>
+            <button className="bg-white rounded-xl p-2 text-black font-bold mr-2 transition duration-500 hover:scale-105 cursor-pointer active:scale-90" onClick={() => {let oldIns = installments;oldIns.push({amount: 0, date: Date(), paid: false}); setInstallments(oldIns); console.log(installments)}}>New Installment</button><button className="bg-white rounded-xl p-2 text-black font-bold ml-2 transition duration-500 hover:scale-105 cursor-pointer active:scale-90" onClick={() => {
+                let oldIns = installments;
+                if (oldIns.length > 0) {
+                    oldIns.pop(); 
+                    setInstallments(oldIns); 
+                    setTotalInstallmentAmount(totalInstallmentAmount - oldIns[oldIns.length - 1].amount);
+                }
+            }}>Remove Installment</button>
+
             {
               installments.map((installment, index) => (
                 <div key={index} className="flex justify-center items-center w-full mt-4 flex-col">
-                  <input type="number" placeholder={`Installment #${index + 1} Amount *`}onChange={(e)=>{handleInstallmentChange(index, e.target.value, 'amount')}} className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl  text-white p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
-                  <input placeholder={`Installment #${index + 1} Deadline *`} onChange={(e)=>{handleInstallmentChange(index, e.target.value, 'date')}} className='bg-[rgba(149,165,166,0.7)] border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl  text-white p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100' type="date"></input>
+                  <input type="number" placeholder={`Installment #${index + 1} Amount *`}onChange={(e)=>{handleInstallmentChange(index, e.target.value, 'amount')}} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl  text-black p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
+                  <input placeholder={`Installment #${index + 1} Deadline *`} onChange={(e)=>{handleInstallmentChange(index, e.target.value, 'date')}} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl  text-black p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100' type="date"></input>
                 </div>
               ))
             }
             <h1 className="mt-6 text-sm">Total Contract Amount : {contract.amount}</h1>
             <h1 className="">Total Installment Amount : <span className={`${totalInstallmentAmount > contract.amount || totalInstallmentAmount < contract.amount ? 'text-red-500' : ''}`}>{totalInstallmentAmount} OMR</span></h1>
-            <button onClick={()=>{handleBtnClicks(2)}} className={`${totalInstallmentAmount > contract.amount || totalInstallmentAmount < contract.amount? 'pointer-events-none opacity-50' : ''} w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent hover:text-main font-bold hover:scale-110 hover:border-transparent`}>Submit</button>
+            <button onClick={()=>{handleBtnClicks(2)}} className={`${totalInstallmentAmount > contract.amount || totalInstallmentAmount < contract.amount? 'pointer-events-none opacity-50' : ''} w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent`}>Submit</button>
           </div>
         </dialog>
         <dialog id="contract_installments_modal" className={`modal ${shake ? 'animate-shake' : ''}`}>
-          <div className="modal-box px-8">
+          <div className="modal-box px-8 bg-bg">
             <h3 className="font-bold text-lg">Contract Installments</h3>
             <p className="py-4">Below are the installments this contract has. Green Ones have been paid. You can mark one paid by clicking the button.</p>
             <div className="flex justify-center items-center flex-col">
                 {localContract.installments.map((installment, index) => (
-                  <div key={index} className={`${!installment.paid ? 'bg-[rgba(149,165,166,0.7)]' : 'bg-emerald-400'} border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl text-white p-2 mt-3 border-none w-full flex justify-between`}>
+                  <div key={index} className={`${!installment.paid ? 'bg-[rgba(149,165,166,0.7)]' : 'bg-emerald-400'} border-[1px] border-[rgba(1,1,1,0.7)] rounded-xl text-black p-2 mt-3 border-none w-full flex justify-between`}>
                     <h1>{installment.amount} OMR [{installment.date}]</h1>
                     {!installment.paid ? 
                     <h1 onClick={async () => {
@@ -268,23 +284,23 @@ function ContractsPage() {
                   </div>
                 ))}
             </div>
-            <button onClick={()=>{handleBtnClicks(3)}} className='w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent hover:text-main font-bold hover:scale-110 hover:border-transparent'>Close</button>
+            <button onClick={()=>{handleBtnClicks(3)}} className='w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent'>Close</button>
           </div>
         </dialog>
         <dialog id="contract_description_modal" className={`modal ${shake ? 'animate-shake' : ''}`}>
-          <div className="modal-box px-8">
+          <div className="modal-box px-8 bg-bg">
             <h3 className="font-bold text-lg">Contract Description</h3>
             <p className="py-4">{localContract.description}</p>
-            <button onClick={()=>{handleBtnClicks(4)}} className='w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent hover:text-main font-bold hover:scale-110 hover:border-transparent'>Close</button>
+            <button onClick={()=>{handleBtnClicks(4)}} className='w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent'>Close</button>
           </div>
         </dialog>
       </div>
       <div className="flex justify-center items-center mt-12 max-w-full mb-12">
         <div className="overflow-x-visible overflow-y-scroll w-full">
-          <table className="table table-zebra" style={{ maxWidth: '100%' }}>
+          <table className="table text-black" style={{ maxWidth: '100%' }}>
             {/* head */}
             <thead>
-              <tr>
+              <tr className="text-black">
                 <th>ID</th>
                 <th>Description</th>
                 <th>Company Cr</th>
