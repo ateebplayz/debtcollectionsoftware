@@ -252,7 +252,7 @@ function ClientsPage() {
             <p className="py-4">You must fill out all the fields.</p>
             {error !== '' ?
             <div className='w-full flex justify-center items-center p-2 bg-red-200 border-2 border-red-500 rounded-lg text-red-500'>
-              <p>{error}</p>
+              <p className='text-center'>{error}</p>
             </div>
             : <></>}
             <div className="w-full justify-between items-center flex">

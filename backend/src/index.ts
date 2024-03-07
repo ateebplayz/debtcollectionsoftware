@@ -10,9 +10,7 @@ import { mongoClient } from './modules/mongo';
 import path from 'path';
 
 const app = express()
-app.use(cors({
-    origin: 'http://prices.grabyourservices.com:9089'
-}));
+app.use(cors());
 
 mongoClient.connect().then(() => {
     console.log('Connected to MongoDB');

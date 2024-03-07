@@ -12,7 +12,7 @@ function sleep (ms: number) {
   return new Promise((res) => setTimeout(res, ms))
 }
 function CompaniesPage() {
-  const [error, setError] = React.useState('a')
+  const [error, setError] = React.useState('')
   const fileInputRef = React.useRef<HTMLInputElement>(null)
   const [disabled, setDisabled] = React.useState(false)
   const [clients, setClients] = React.useState<Array<Client>>([])
@@ -226,7 +226,7 @@ function CompaniesPage() {
             <p className="py-4">You must fill out all the fields.</p>
             {error !== '' ?
             <div className='w-full flex justify-center items-center p-2 bg-red-200 border-2 border-red-500 rounded-lg text-red-500'>
-              <p>{error}</p>
+              <p className='text-center'>{error}</p>
             </div>
             : <></>}
             <div className="w-full justify-between items-center flex placeholder-tertiary">

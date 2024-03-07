@@ -22,7 +22,9 @@ export default function Home() {
       if(!token) router.push('/login')
     } catch {console.log}
   }
-  run()
+  React.useEffect(()=>{
+    run()
+  }, [])
   return (
     <div className="w-full bg-main min-h-screen flex flex-row items-center text-black">
       <div className="flex w-3/12 h-[calc(100vh-4rem)] items-center pt-8 mx-8 rounded-xl bg-bg flex-col">
