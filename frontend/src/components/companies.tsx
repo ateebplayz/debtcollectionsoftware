@@ -137,7 +137,7 @@ function CompaniesPage() {
   }
   const getClient = (clientId: string) => {
     let client: Client = {
-      cr: "",
+      cr: '',
       companyCr: "",
       name: "",
       id: "",

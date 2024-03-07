@@ -11,5 +11,6 @@ export const collections = {
     clients: db.collection<Client>('Clients'),
     contracts: db.collection<Contract>('Contracts'),
     companies: db.collection<Company>('Companies'),
-    backup: db.collection<{code: string}>('Backups')
+    backup: db.collection<{code: string}>('Backups'),
+    foreverContracts: db.collection<Contract>('ForeverContracts')
 }

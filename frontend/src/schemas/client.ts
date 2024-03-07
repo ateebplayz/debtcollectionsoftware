@@ -5,7 +5,7 @@ import Contract from "./contract"
  */
 
 export default interface Client {
-    cr: string
+	cr: string,
 	/**
 	 * The client's company's CR
 	 * 

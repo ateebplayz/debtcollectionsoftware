@@ -27,7 +27,7 @@ router.post("/create", async (req, res) => {
             } else {
                 if (!contractData || !Object.values(contractData).every(value => value !== '')) {
                     return res.json({ error: 'Invalid Contract Object/None found', code: 404 });
-                }
+                }   
                 let client = await collections.clients.findOne({id: contractData.clientId})
                 if(client) {
                     client.contracts.push(contractData.id)
@@ -36,6 +36,7 @@ router.post("/create", async (req, res) => {
                         return res.json({error: 'A contract with this ID already exists', code: 402})
                     } else {
                         await collections.contracts.insertOne(contractData)
+                        await collections.foreverContracts.insertOne(contractData)
                         await collections.clients.updateOne({id: contractData.clientId}, {$set: client})
                         return res.json({msg: 'Success', code: 200})
                     }

@@ -13,7 +13,6 @@ function sleep (ms: number) {
   return new Promise((res) => setTimeout(res, ms))
 }
 function ContractsPage() {
-  const [error, setError] = React.useState('')
   const [totalInstallmentAmount, setTotalInstallmentAmount] = React.useState(0)
   const [installments, setInstallments] = React.useState<Array<Installment>>([]) 
   const [open, setOpen] = React.useState(false)
@@ -103,7 +102,6 @@ function ContractsPage() {
       const response = await axios.post(`${serverUri}/api/contracts/create`, {contract: contractWithInstallment, token: localStorage.getItem('token')})
       console.log(response.data)
       if(response.data.code == 200) {
-        setError('')
         setContract({
           companyCr: '',
           clientId: '',
@@ -115,7 +113,6 @@ function ContractsPage() {
           percentage: 0,})
         handleBtnClicks(1)
       } else {
-        setError(response.data.error)
         setShake(true)
         await sleep(500)
         setShake(false)
@@ -213,11 +210,6 @@ function ContractsPage() {
           <div className="modal-box px-8 bg-bg">
             <h3 className="font-bold text-lg">Create a Contract</h3>
             <p className="py-4">You must fill out all the fields.</p>
-            {error !== '' ?
-            <div className='w-full flex justify-center items-center p-2 bg-red-200 border-2 border-red-500 rounded-lg text-red-500'>
-              <p className='text-center'>{error}</p>
-            </div>
-            : <></>}
             <div className={`w-full`} onClick={()=>{toggleOpen(); setDropdownText2('Client *'); setContract({...contract, clientId: ''})}}>
               <summary className="btn bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 text-start focus:opacity-100 hover:bg-tertiary text-black" onClick={toggleOpen}>{dropdownText}</summary>
               <ul className={`${open ? " flex mt-2 shadow menu dropdown-content z-[1] rounded-box w-full bg-tertiary border-2 border-bg font-bold text-black" : 'hidden' }`}>
@@ -233,7 +225,7 @@ function ContractsPage() {
               <ul className={`${open2 ? " flex mt-2 shadow menu dropdown-content z-[1] rounded-box w-full bg-tertiary border-2 border-bg font-bold text-black" : 'hidden' }`}>
                 {
                   fetchLocalClients(contract.companyCr).map((client, index) => (
-                    <li key={index} onClick={()=>{setOpen(false); setDropdownText2(client.name); handleDropdownChange(client.id, 'clientId')}} tabIndex={index} className="transition duration-500 rounded-xl hover:bg-base-100 hover:text-black"><a>{client.name}</a></li>
+                    <li key={index} onClick={()=>{setOpen(false); setDropdownText2(client.name); handleDropdownChange(client.id, 'clientId')}} tabIndex={index} className="transition duration-500 rounded-xl hover:bg-base-100 hover:bg-bg"><a>{client.name}</a></li>
                   ))
                 }
               </ul>

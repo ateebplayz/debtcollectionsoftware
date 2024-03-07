@@ -33,6 +33,7 @@ router.post("/pay", async (req, res) => {
                 if(contract) {
                     contract.installments[installmentIndex].paid = true
                     await collections.contracts.updateOne({id: contractData.id}, {$set: contract})
+                    await collections.foreverContracts.updateOne({id: contractData.id}, {$set: contract})
                     return res.json({msg: 'Success', code: 200})
                 } else res.json({error: 'No Contract found', code: 404})
             }

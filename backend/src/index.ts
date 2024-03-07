@@ -4,6 +4,7 @@ import userRoute from './routes/user';
 import companyRoute from './routes/companies';
 import filesRoute from './routes/files';
 import contractsRoute from './routes/contracts'
+import reportsRoute from './routes/reports'
 import clientsRoute from './routes/clients';
 import installmentsRoute from './routes/installment'
 import { mongoClient } from './modules/mongo';
@@ -25,6 +26,7 @@ app.use("/api/files", filesRoute);
 app.use("/api/clients", clientsRoute);
 app.use("/api/contracts", contractsRoute);
 app.use("/api/installments", installmentsRoute);
+app.use("/api/reports", reportsRoute);
 
 app.listen(9090, () => {
 	console.log('Server started on port 9090');

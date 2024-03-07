@@ -149,4 +149,33 @@ router.get("/fetch", async (req, res) => {
         return res.json({ error: 'Internal Server Error', code:500 })
     }
 })
+router.get("/fetch/specific", async (req, res) => {
+    const data = req.query as {token: string, cr: string}
+    try {
+        const token = data.token
+        if (!token || !data.cr) {
+            return res.json({ error: 'Token/CR is missing', code: 404 })
+        }
+        const verified = jwt.verify(token, config.jwtKey) as User
+        if(verified) {
+            const user = collections.user.findOne({username: verified.username, password: verified.password })
+            if(!user) {
+                return res.json({error: 'Invalid Username/Password', code: 401})
+            } else {
+                const company = await collections.companies.findOne({cr: data.cr})
+                if(company) {
+                    return res.json({data: company, code: 200})
+                } else return res.json({error: 'Company not found', code: 404})
+            }
+        } else {
+            return res.json({error: 'Unknown error occured', code: 0})
+        }
+    } catch (error: any) {
+        if (error.name === 'JsonWebTokenError') {
+            return res.json({ error: 'Invalid token format', code: 400 })
+        }
+        console.error(error)
+        return res.json({ error: 'Internal Server Error', code:500 })
+    }
+})
 export default router;
