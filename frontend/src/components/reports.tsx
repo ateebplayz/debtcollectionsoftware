@@ -122,7 +122,7 @@ function ReportsPage() {
     <div className='overflow-y-auto w-full'>
       {page == 'default' ? 
       <><div className='bg-main w-full p-8 rounded-xl flex flex-row items-center justify-between'>
-          <h1 className='font-bold text-3xl'>Client Based Report</h1>
+          <h1 className='font-bold text-3xl'>Client Wise Report</h1>
           <div className='w-72 flex justify-center items-center h-full flex-col'>
             <div className={`w-full`} onClick={() => { setOpen2(!open2) } }>
               <summary className={`btn bg-bg border-[1px] border-bg placeholder-black rounded-xl text-black p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 text-start focus:opacity-100 hover:bg-bg  ${disabled ? 'pointer-events-none opacity-50 cursor-not-allowed' : ''}`} onClick={() => { setOpen2(!open2) } }>{dropdownText2}</summary>
@@ -136,7 +136,7 @@ function ReportsPage() {
           </div>
         </div>
           <div className='bg-main w-full p-8 rounded-xl flex flex-row items-center justify-between mt-8'>
-            <h1 className='font-bold text-3xl'>Company Based Report</h1>
+            <h1 className='font-bold text-3xl'>Company Wise Report</h1>
             <div className='w-72 flex justify-center items-center h-full flex-col'>
               <div className={`w-full`} onClick={() => { setOpen(!open) } }>
                 <summary className={`btn bg-bg border-[1px] border-bg placeholder-black rounded-xl text-black p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 text-start focus:opacity-100 hover:bg-bg  ${disabled ? 'pointer-events-none opacity-50 cursor-not-allowed' : ''}`} onClick={() => { setOpen(!open) } }>{dropdownText}</summary>
@@ -211,6 +211,7 @@ function ReportsPage() {
               </div>
             ))}
           </div>
+          <button onClick={()=>{setPage('default')}} className={`w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent mb-12`}>Return</button>
         </div> 
       :
       page == 'company' ?
@@ -267,6 +268,7 @@ function ReportsPage() {
               </div>
             ))}
           </div>
+          <button onClick={()=>{setPage('default')}} className={`w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent mb-12`}>Return</button>
         </div>
       :
       page == 'overall' ?
@@ -316,6 +318,7 @@ function ReportsPage() {
             </div>
           ))}
         </div>
+          <button onClick={()=>{setPage('default')}} className={`w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent mb-12`}>Return</button>
       </div>
       :
       <></>
