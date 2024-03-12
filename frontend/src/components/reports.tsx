@@ -10,6 +10,7 @@ function ReportsPage() {
   const [open, setOpen] = React.useState(false)
   const [open2, setOpen2] = React.useState(false)
   const [localCompanyId, setlocalCompanyId] = React.useState('')
+  const [dates, setDates] = React.useState({from: '00-00-0000', to: '00-00-0000'})
   const [localClientId, setlocalClientId] = React.useState('')
   const [dropdownText, setDropdownText] = React.useState('Company *')
   const [dropdownText2, setDropdownText2] = React.useState('Client *')
@@ -74,7 +75,8 @@ function ReportsPage() {
         break
       case 'company':
         const companyReq = await axios.get(`${serverUri}/api/companies/fetch/specific?token=${localStorage.getItem('token')}&cr=${localCompanyId}`)
-        const reportCReq = await axios.get(`${serverUri}/api/reports/fetch?token=${localStorage.getItem('token')}&type=${type}&key=${localCompanyId}`)
+        const reportCReq = await axios.get(`${serverUri}/api/reports/fetch?token=${localStorage.getItem('token')}&type=${type}&key=${localCompanyId}&dateto=${dates.to}&datefrom=${dates.from}`)
+        console.log(reportCReq, companyReq)
         if(companyReq.data.code == 200 && reportCReq.data.code == 200) {
           setLocalCompany(companyReq.data.data)
           setLocalContracts(reportCReq.data.data)
@@ -118,6 +120,21 @@ function ReportsPage() {
     }
     return totalIncome
   }
+  const handleDateFromChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedDate = e.target.value;
+    document.getElementById('dateToInput')?.setAttribute('min', selectedDate)
+    setDates({
+      ...dates,
+      from: selectedDate
+    })
+  }
+  const handleDateToChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedDate = e.target.value;
+    setDates({
+      ...dates,
+      to: selectedDate
+    })
+  }
   return (
     <div className='overflow-y-auto w-full'>
       {page == 'default' ? 
@@ -146,6 +163,8 @@ function ReportsPage() {
                   ))}
                 </ul>
               </div>
+              <input placeholder={`Date From*`} onChange={handleDateFromChange} className='bg-bg border-[1px] border-bg placeholder-black rounded-xl  text-black p-3 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100' type="date" aria-label='Date From'></input>
+              <input placeholder={`Date To *`} id="dateToInput" onChange={handleDateToChange} className='bg-bg border-[1px] border-bg placeholder-black rounded-xl  text-black p-3 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100' type="date"></input>
               <button onClick={() => { setDisabled(true); handleGeneration('company')}} className={`w-full bg-bg rounded-xl border-[1px] border-main p-2 mt-2 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent ${disabled || localCompanyId == '' ? 'pointer-events-none opacity-50 cursor-not-allowed' : ''}`}>Generate</button>
             </div>
           </div><div className='bg-main w-full p-8 rounded-xl flex flex-row items-center justify-between mt-8'>
@@ -222,6 +241,7 @@ function ReportsPage() {
               <h1 className='mt-2 text-md font-bold'>Date: <span className='font-normal'>{Date()}</span></h1>
               <h1><span className='font-bold'>Paid Debt: </span>{getTotalIncomes('paid')} OMR</h1>
               <h1><span className='font-bold'>Unpaid Debt: </span>{getTotalIncomes('unpaid')} OMR</h1>
+              <h1><span className='font-bold'>Income: </span>{getTotalIncomes('income')} OMR</h1>
             </div>
             <div>
               <h1 className='font-bold'>Company Details</h1>

@@ -20,7 +20,7 @@ function LoginPage() {
   }, [])
   const [shake2, setShake2] = React.useState(false)
   const [disabled, setDisabled] = React.useState(false)
-  const [error, setError] = React.useState('ac')
+  const [error, setError] = React.useState('')
   const [username, setUsername] = React.useState('')
   const [password, setPassword] = React.useState('')
   const [forgetObj, setForgetObj] = React.useState({password: '', backupCode: ''})
