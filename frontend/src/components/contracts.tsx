@@ -27,8 +27,20 @@ function ContractsPage() {
   const [open2, setOpen2] = React.useState(false)
   const [dropdownText, setDropdownText] = React.useState('Company *')
   const [dropdownText2, setDropdownText2] = React.useState('Client *')
+  const [SearchQuery1, setSearchQuery1] = React.useState('')
+  const [SearchQuery2, setSearchQuery2] = React.useState('')
   const [disabled2, setDisabled2] = React.useState(true)
   const [disabled, setDisabled] = React.useState(false)
+  const [deleteContract, setDeleteContract] = React.useState<Contract>({
+    companyCr: '',
+    clientId: '',
+    id: '',
+    installments: [],
+    date: '',
+    amount: 0,
+    description: '',
+    percentage: 0,
+  })
   const [clients, setClients] = React.useState<Array<Client>>([])
   const [companies, setCompanies] = React.useState<Array<Company>>([])
   const [contracts, setContracts] = React.useState<Array<Contract>>([])
@@ -80,7 +92,7 @@ function ContractsPage() {
           } else {
             setDisabled2(true)
           }
-          tempContract.amount = parseInt(e.target.value)
+          tempContract.amount = parseFloat(e.target.value)
         } else {
           setDisabled2(true)
         }
@@ -146,7 +158,14 @@ function ContractsPage() {
       case 4:
         (document.getElementById('contract_description_modal') as HTMLDialogElement)?.close()
         break
+      case 5:
+        (document.getElementById('contract_delete_modal') as HTMLDialogElement)?.close()
+        break
     }
+  }
+  const handleContractDeletion = async () => {
+    (document.getElementById('contract_delete_modal') as HTMLDialogElement)?.close()
+    const resp = await axios.post(`${serverUri}/api/contracts/delete`, {contract: deleteContract, token: localStorage.getItem('token')});
   }
   const toggleOpen = () => {
     setOpen(!open)
@@ -188,27 +207,31 @@ function ContractsPage() {
     const fetchData = async () => {
       try {
         const companiesResponse = await axios.get(`${serverUri}/api/companies/fetch?token=${localStorage.getItem('token')}`);
-        setCompanies(companiesResponse.data.data);
+        setCompanies(companiesResponse.data.data)
         
         const clientsResponse = await axios.get(`${serverUri}/api/clients/fetch?token=${localStorage.getItem('token')}`);
-        setClients(clientsResponse.data.data);
+        setClients(clientsResponse.data.data)
         
         const contractsResponse = await axios.get(`${serverUri}/api/contracts/fetch?token=${localStorage.getItem('token')}`);
-        setContracts(contractsResponse.data.data);
+        setContracts(contractsResponse.data.data)
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('Error fetching data:', error)
       }
-    };
-
-    // Fetch data initially
-    fetchData();
-
-    // Fetch data every 10 seconds
-    const interval = setInterval(fetchData, 1000);
-
-    // Cleanup interval on component unmount
-    return () => clearInterval(interval);
-  }, []);
+    }
+    fetchData()
+    const interval = setInterval(fetchData, 1000)
+    return () => clearInterval(interval)
+  }, [])
+  const isAnyInstallmentPaid = () => {
+    let paid = false
+    deleteContract.installments.map((installment) => {
+      if(installment.paid) paid = true
+    })
+    return paid
+  }
+  const filteredCompanies = companies.filter(company =>
+    company.name.toLowerCase().startsWith(SearchQuery2.toLowerCase())
+  )
   return (
     <div className='flex justify-start items-start max-w-full h-full flex-col overflow-y-scroll'>
       <div className='flex justify-between items-start  w-full'>
@@ -218,15 +241,20 @@ function ContractsPage() {
           <div className="modal-box px-8 bg-bg">
             <h3 className="font-bold text-lg">Create a Contract</h3>
             <p className="py-4">You must fill out all the fields.</p>
-            <div className={`w-full`} onClick={()=>{toggleOpen(); setDropdownText2('Client *'); setContract({...contract, clientId: ''})}}>
-              <summary className="btn bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 text-start focus:opacity-100 hover:bg-tertiary text-black" onClick={toggleOpen}>{dropdownText}</summary>
-              <ul className={`${open ? " flex mt-2 shadow menu dropdown-content z-[1] rounded-box w-full bg-tertiary border-2 border-bg font-bold text-black" : 'hidden' }`}>
-                {
-                  companies.map((company, index) => (
-                    <li key={index} onClick={()=>{setOpen(false); setDropdownText(company.name); handleDropdownChange(company.cr, 'companyCr')}} tabIndex={index} className="transition duration-500 rounded-xl hover:bg-base-100 hover:bg-bg"><a>{company.name}</a></li>
-                  ))
-                }
-              </ul>
+            <div className={`w-full`} onClick={() => { setOpen(!open) }}>
+              <input 
+                type="text" 
+                placeholder={dropdownText}
+                className="p-3 border-b-2 border-tertiary bg-tertiary focus:outline-none focus:border-bg w-full bg-bg mt-2 placeholder-black text-black transition duration-500 hover:cursor-pointer hover:opacity-50 rounded-xl active:cursor-text active:opacity-100 focus:cursor-text focus:opacity-100 focus:outline-none" 
+                onChange={(e)=>{setSearchQuery2(e.target.value)}}
+              />
+              <div className={`${open ? "flex mt-2 bg-tertiary shadow menu dropdown-content z-[1] rounded-box overflow-y-auto max-h-[200px] w-full border-2 border-main font-bold text-black" : 'hidden'}`}>
+                <ul>
+                  {filteredCompanies.map((company, index) => (
+                    <li key={index} onClick={() => { setOpen(false); setDropdownText(company.name); handleDropdownChange(company.cr, 'companyCr') }} tabIndex={index} className="transition w-full duration-500 rounded-xl hover:text-black hover:bg-bg"><a>{company.name}</a></li>
+                  ))}
+                </ul>
+              </div>
             </div>
             <div className={`w-full ${contract.companyCr == '' ? 'pointer-events-none opacity-50' : ''}`} onClick={toggleOpen2}>
               <summary className="btn bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 text-start focus:opacity-100 hover:bg-tertiary text-black" onClick={toggleOpen2}>{dropdownText2}</summary>
@@ -240,7 +268,7 @@ function ContractsPage() {
             </div>
             <input placeholder="Description *" onChange={(e)=>{handleInputChange(e, 'description')}} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl  text-black p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
             <div className="w-full justify-between items-center flex">
-              <input placeholder="Amount *" type="number" onChange={(e)=>{handleInputChange(e, 'amount')}} required={true} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl text-black p-2 mr-1 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
+              <input placeholder="Amount *" type="number" step="0.001" required={true} onChange={(e)=>{handleInputChange(e, 'amount')}} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl text-black p-2 mr-1 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
               <input placeholder="Percentage *" step="0.01" type="number" onChange={(e)=>{handleInputChange(e, 'percentage')}} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl ml-1 text-black p-2 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
             </div>
             <button onClick={()=>(document.getElementById('installment_modal') as HTMLDialogElement)?.showModal()} className={`bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl text-black p-2 w-full mt-3 border-none transition duration-300 ${!disabled2 ? 'hover:cursor-pointer hover:opacity-75 focus:outline-none focus:scale-105 focus:opacity-100' : ' pointer-events-none cursor-not-allowed hover:cursor-not-allowed opacity-50'}`}>{disabled2 ? 'Please insert an amount' : installments.length < 0 ? 'Configure Installments' : 'Total Installments Configured : ' + installments.length}</button>
@@ -264,8 +292,8 @@ function ContractsPage() {
             {
               installments.map((installment, index) => (
                 <div key={index} className="flex justify-center items-center w-full mt-4 flex-col">
-                  <input type="number" placeholder={`Installment #${index + 1} Amount *`}onChange={(e)=>{handleInstallmentChange(index, e.target.value, 'amount')}} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl  text-black p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
-                  <input placeholder={`Installment #${index + 1} Deadline *`} onChange={(e)=>{handleInstallmentChange(index, e.target.value, 'date')}} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl  text-black p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100' type="date"></input>
+                  <input type="number" placeholder={`Installment #${index + 1} Amount *`}onChange={(e)=>{handleInstallmentChange(index, e.target.value, 'amount')}} step="0.001" className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl  text-black p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
+                  <input min={new Date().toISOString().split('T')[0]} placeholder={`Installment #${index + 1} Deadline *`} onChange={(e)=>{handleInstallmentChange(index, e.target.value, 'date')}} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl  text-black p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100' type="date"></input>
                 </div>
               ))
             }
@@ -301,6 +329,14 @@ function ContractsPage() {
             <button onClick={()=>{handleBtnClicks(4)}} className='w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent'>Close</button>
           </div>
         </dialog>
+        <dialog id="contract_delete_modal" className={`modal ${shake ? 'animate-shake' : ''}`}>
+          <div className="modal-box px-8 bg-bg">
+            <h3 className="font-bold text-lg">Contract Deletion</h3>
+            <p className="py-4">{isAnyInstallmentPaid() ? 'You cannot delete this contract due to some installments being paid!' : `Delete Contract #${deleteContract.id}. This action is irreversible`}</p>
+            <button onClick={()=>{handleContractDeletion()}} className={`w-full bg-red-500 rounded p-3 mt-4 text-white transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent hover:text-red-500 ${isAnyInstallmentPaid() ? 'pointer-events-none cursor-not-allowed opacity-50' : ''}`}>Delete</button>
+            <button onClick={()=>{handleBtnClicks(5)}} className='w-full bg-main rounded border-[1px] border-main p-2 mt-3 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent'>Close</button>
+          </div>
+        </dialog>
       </div>
       <div className="flex justify-center items-center mt-12 max-w-full mb-12">
         <div className="overflow-x-visible overflow-y-scroll w-full">
@@ -327,11 +363,11 @@ function ContractsPage() {
                   <td>{clients.find(client => client.id === contract.clientId)?.name || 'None Found'}</td>
                   <td><a onClick={() => {setLocalContract(contract); (document.getElementById('contract_installments_modal') as HTMLDialogElement)?.showModal(); console.log(contract)}} className="underline cursor-pointer">View</a></td>
                   <td>{contract.date}</td>
-                  <td>{contract.amount}</td>
-                  <td>{contract.percentage}</td>
+                  <td>{contract.amount.toFixed(3)}</td>
+                  <td>{contract.percentage.toFixed(2)}</td>
                   <td onClick={async () => {
-                    const resp = await axios.post(`${serverUri}/api/contracts/delete`, {contract: contract, token: localStorage.getItem('token')})
-                    console.log(resp.data)
+                    setDeleteContract(contract);
+                    (document.getElementById('contract_delete_modal') as HTMLDialogElement).showModal()
                   }} className="underline cursor_pointer cursor-pointer transition duration-500 hover:opacity-50">Delete</td>
                 </tr>
               )) : ''}

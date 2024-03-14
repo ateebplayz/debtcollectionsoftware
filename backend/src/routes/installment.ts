@@ -34,6 +34,11 @@ router.post("/pay", async (req, res) => {
                     contract.installments[installmentIndex].paid = true
                     await collections.contracts.updateOne({id: contractData.id}, {$set: contract})
                     await collections.foreverContracts.updateOne({id: contractData.id}, {$set: contract})
+                    let paid = 0
+                    contract.installments.map((installment) => {
+                        if(installment.paid) paid += installment.amount
+                    })
+                    if(paid == contract.amount) collections.contracts.deleteOne({id: contract.id})
                     return res.json({msg: 'Success', code: 200})
                 } else res.json({error: 'No Contract found', code: 404})
             }

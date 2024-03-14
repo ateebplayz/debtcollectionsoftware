@@ -34,8 +34,9 @@ router.post("/create", async (req, res) => {
                 const clientX = await collections.clients.findOne({id: clientData.id})
                 const clientY = await collections.clients.findOne({contact: {number: clientData.contact.number}})
                 const clientZ = await collections.clients.findOne({cr: clientData.cr})
-                if(clientX || clientY || clientZ) {
-                    return res.json({error: 'A client with this ID/CR or Phone number already exists', code: 402})
+                const companyX = await collections.companies.findOne({cr: clientData.cr})
+                if(clientX || clientY || clientZ || companyX) {
+                    return res.json({error: 'A client/company with this ID/CR or Phone number already exists', code: 402})
                 } else {
                     if(oldCompany) {
                         oldCompany.clients.push(clientData.id)

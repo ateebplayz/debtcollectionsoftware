@@ -14,6 +14,8 @@ function ReportsPage() {
   const [localClientId, setlocalClientId] = React.useState('')
   const [dropdownText, setDropdownText] = React.useState('Company *')
   const [dropdownText2, setDropdownText2] = React.useState('Client *')
+  const [SearchQuery1, setSearchQuery1] = React.useState('')
+  const [SearchQuery2, setSearchQuery2] = React.useState('')
   const [clients, setClients] = React.useState<Array<Client>>([])
   const [companies, setCompanies] = React.useState<Array<Company>>([])
   const [localContracts, setLocalContracts] = React.useState<Array<Contract>>([])
@@ -112,7 +114,7 @@ function ReportsPage() {
         })
         break
     }
-    return totalIncome
+    return totalIncome.toFixed(3)
   }
   const getTotalIncomes = (type: 'unpaid' | 'paid' | 'income') => {
     let totalIncome = 0
@@ -139,7 +141,7 @@ function ReportsPage() {
         })
         totalIncome = parseInt(totalIncome.toFixed(3))
     }
-    return totalIncome
+    return totalIncome.toFixed(3)
   }
   const handleDateFromChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedDate = e.target.value;
@@ -156,6 +158,12 @@ function ReportsPage() {
       to: selectedDate
     })
   }
+  const filteredClients = clients.filter(client =>
+    client.name.toLowerCase().startsWith(SearchQuery1.toLowerCase())
+  )
+  const filteredCompanies = companies.filter(company =>
+    company.name.toLowerCase().startsWith(SearchQuery2.toLowerCase())
+  )
   return (
     <div className='overflow-y-auto w-full'>
       {page == 'default' ? 
@@ -168,28 +176,43 @@ function ReportsPage() {
         <div className='bg-main w-full p-8 rounded-xl flex flex-row items-center justify-between mt-8'>
           <h1 className='font-bold text-3xl'>Client Wise Report</h1>
           <div className='w-72 flex justify-center items-center h-full flex-col'>
-            <div className={`w-full`} onClick={() => { setOpen2(!open2) } }>
-              <summary className={`btn bg-bg border-[1px] border-bg placeholder-black rounded-xl text-black p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 text-start focus:opacity-100 hover:bg-bg  ${disabled ? 'pointer-events-none opacity-50 cursor-not-allowed' : ''}`} onClick={() => { setOpen2(!open2) } }>{dropdownText2}</summary>
-              <ul className={`${open2 ? " flex mt-2 bg-bg shadow menu dropdown-content z-[1] rounded-box w-full border-2 border-main font-bold text-black" : 'hidden'}`}>
-                {clients.map((client, index) => (
-                  <li key={index} onClick={() => { setOpen2(false); setDropdownText2(client.name); setlocalClientId(client.id) } } tabIndex={index} className="transition duration-500 rounded-xl hover:text-black hover:bg-tertiary"><a>{client.name} | {client.companyCr} (Company)</a></li>
-                ))}
+          <div className={`w-full col`} onClick={() => { setOpen2(!open2) }}>
+            <input 
+              type="text" 
+              placeholder="Search..." 
+              className="p-3 border-b-2 border-main focus:outline-none focus:border-tertiary w-full bg-bg mt-2 placeholder-black text-black transition duration-500 hover:cursor-pointer hover:opacity-50 rounded-xl active:cursor-text active:opacity-100 focus:cursor-text focus:opacity-100 focus:outline-none" 
+              onChange={(e)=>{setSearchQuery1(e.target.value)}}
+            />
+            <div className={`${open2 ? "flex mt-2 bg-bg shadow menu dropdown-content max-h-[150px] overflow-y-auto z-[1] rounded-box w-full border-2 border-main font-bold text-black flex-col" : 'hidden'}`}>
+              <ul>
+              {filteredClients.map((client, index) => (
+                <li key={index} onClick={() => { setOpen2(false); setDropdownText2(client.name); setlocalClientId(client.id) }} tabIndex={index} className="transition duration-500 rounded-xl hover:text-black hover:bg-tertiary"><a>{client.name} | {client.companyCr} (Company)</a></li>
+              ))}
               </ul>
             </div>
-            <button onClick={() => { setDisabled(true); handleGeneration('client')}} className={`w-full bg-bg rounded-xl border-[1px] border-main p-2 mt-2 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent ${disabled || localClientId == '' ? 'pointer-events-none opacity-50 cursor-not-allowed' : ''}`}>Generate</button>
+          </div>
+          <button onClick={() => { setDisabled(true); handleGeneration('client')}} className={`w-full bg-bg rounded-xl border-[1px] border-main p-2 mt-2 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent ${disabled || localClientId == '' ? 'pointer-events-none opacity-50 cursor-not-allowed' : ''}`}>Generate</button>
           </div>
         </div>
         <div className='bg-main w-full p-8 rounded-xl flex flex-row items-center justify-between mt-8'>
           <h1 className='font-bold text-3xl'>Company Wise Report</h1>
           <div className='w-72 flex justify-center items-center h-full flex-col'>
-            <div className={`w-full`} onClick={() => { setOpen(!open) } }>
-              <summary className={`btn bg-bg border-[1px] border-bg placeholder-black rounded-xl text-black p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 text-start focus:opacity-100 hover:bg-bg  ${disabled ? 'pointer-events-none opacity-50 cursor-not-allowed' : ''}`} onClick={() => { setOpen(!open) } }>{dropdownText}</summary>
-              <ul className={`${open ? " flex mt-2 bg-bg shadow menu dropdown-content z-[1] rounded-box w-full border-2 border-main font-bold text-black" : 'hidden'}`}>
-                {companies.map((company, index) => (
-                  <li key={index} onClick={() => { setOpen(false); setDropdownText(company.name); setlocalCompanyId(company.cr) } } tabIndex={index} className="transition duration-500 rounded-xl hover:text-black hover:bg-tertiary"><a>{company.name}</a></li>
+          <div className={`w-full`} onClick={() => { setOpen(!open) }}>
+            <input 
+              type="text" 
+              placeholder="Search..." 
+              className="p-3 border-b-2 border-main focus:outline-none focus:border-tertiary w-full bg-bg mt-2 placeholder-black text-black transition duration-500 hover:cursor-pointer hover:opacity-50 rounded-xl active:cursor-text active:opacity-100 focus:cursor-text focus:opacity-100 focus:outline-none" 
+              onChange={(e)=>{setSearchQuery2(e.target.value)}}
+            />
+            <div className={`${open ? "flex mt-2 bg-bg shadow menu dropdown-content z-[1] rounded-box overflow-y-auto max-h-[200px] w-full border-2 border-main font-bold text-black" : 'hidden'}`}>
+              <ul>
+                {filteredCompanies.map((company, index) => (
+                  <li key={index} onClick={() => { setOpen(false); setDropdownText(company.name); setlocalCompanyId(company.cr) }} tabIndex={index} className="transition w-full duration-500 rounded-xl hover:text-black hover:bg-tertiary"><a>{company.name}</a></li>
                 ))}
               </ul>
             </div>
+          </div>
+
             <button onClick={() => { setDisabled(true); handleGeneration('company')}} className={`w-full bg-bg rounded-xl border-[1px] border-main p-2 mt-2 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent ${disabled || localCompanyId == '' ? 'pointer-events-none opacity-50 cursor-not-allowed' : ''}`}>Generate</button>
           </div>
         </div>
@@ -205,7 +228,7 @@ function ReportsPage() {
         <div>
           <div className='flex justify-between items-start'>
             <div>
-              <h1 className='text-3xl font-bold'>Client #{localClientId} Report</h1>
+              <h1 className='text-3xl font-bold'>Client {localClient.name} Report</h1>
               <h1 className='mt-2 text-md font-bold'>Date: <span className='font-normal'>{Date()}</span></h1>
               <h1><span className='font-bold'>Paid Debt: </span>{getTotalIncomes('paid')} OMR</h1>
               <h1><span className='font-bold'>Unpaid Debt: </span>{getTotalIncomes('unpaid')} OMR</h1>
@@ -241,12 +264,21 @@ function ReportsPage() {
                   <th className="whitespace-nowrap">{index+1}</th>
                   <td>{contract.date}</td>
                   <td>{contract.id}</td>
-                  <td>{contract.amount}</td>
+                  <td>{contract.amount.toFixed(3)}</td>
                   <td>{getTotalIncome('paid', contract)}</td>
                   <td>{getTotalIncome('unpaid', contract)}</td>
                   <td>{getTotalIncome('income', contract)}</td>
                 </tr>
               ))}
+              <tr className="w-full">
+                <th className="whitespace-nowrap"></th>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>{getTotalIncomes('paid')}</td>
+                <td>{getTotalIncomes('unpaid')}</td>
+                <td>{getTotalIncomes('income')}</td>
+              </tr>
             </tbody>
           </table>
           </div>
@@ -293,12 +325,22 @@ function ReportsPage() {
                   <td>{contract.date}</td>
                   <td>{contract.id}</td>
                   <td>{contract.clientId}</td>
-                  <td>{contract.amount}</td>
+                  <td>{contract.amount.toFixed(3)}</td>
                   <td>{getTotalIncome('paid', contract)}</td>
                   <td>{getTotalIncome('unpaid', contract)}</td>
                   <td>{getTotalIncome('income', contract)}</td>
                 </tr>
               ))}
+              <tr className="w-full">
+                <th className="whitespace-nowrap"></th>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>{getTotalIncomes('paid')}</td>
+                <td>{getTotalIncomes('unpaid')}</td>
+                <td>{getTotalIncomes('income')}</td>
+              </tr>
             </tbody>
           </table>
           <button onClick={()=>{setPage('default')}} className={`w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent mb-12`}>Return</button>
@@ -338,12 +380,23 @@ function ReportsPage() {
                   <td>{contract.companyCr}</td>
                   <td>{contract.clientId}</td>
                   <td>{contract.id}</td>
-                  <td>{contract.amount}</td>
+                  <td>{contract.amount.toFixed(3)}</td>
                   <td>{getTotalIncome('paid', contract)}</td>
                   <td>{getTotalIncome('unpaid', contract)}</td>
                   <td>{getTotalIncome('income', contract)}</td>
                 </tr>
               ))}
+              <tr className="w-full">
+                <th className="whitespace-nowrap"></th>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>{getTotalIncomes('paid')}</td>
+                <td>{getTotalIncomes('unpaid')}</td>
+                <td>{getTotalIncomes('income')}</td>
+              </tr>
             </tbody>
           </table>
           <button onClick={()=>{setPage('default')}} className={`w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent mb-12`}>Return</button>

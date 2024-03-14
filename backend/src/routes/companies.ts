@@ -25,9 +25,10 @@ router.post("/create", async (req, res) => {
             } else {
                 if(!companyData || !companyData.name || !companyData.cr || !companyData.address || !companyData.contact.number || !companyData.contact.person || !companyData.attachment || !companyData.clients || companyData.name == '' || companyData.cr == '' || companyData.address == '' || companyData.contact.number == '' || companyData.contact.person == '' || companyData.attachment == '') return res.json({error: 'Invalid Company Input', code: 404})
                 const companyX = await collections.companies.findOne({cr: companyData.cr})
+                const clientX = await collections.clients.findOne({cr: companyData.cr})
                 const companyY = await collections.companies.findOne({contact: {number: companyData.contact.number}})
-                if(companyX || companyY) {
-                    return res.json({error: 'The company with this CR or Phone Number already exists', code: 402})
+                if(companyX || companyY || clientX) {
+                    return res.json({error: 'The company/client with this CR or Phone Number already exists', code: 402})
                 } else {
                     await collections.companies.insertOne(companyData)
                     return res.json({msg: 'Success', code: 200})

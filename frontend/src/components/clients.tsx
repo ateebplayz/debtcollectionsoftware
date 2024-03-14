@@ -16,6 +16,7 @@ function ClientsPage() {
   const fileInputRef = React.useRef<HTMLInputElement>(null)
   const [open, setOpen] = React.useState(false)
   const [dropdownText, setDropdownText] = React.useState('Company *')
+  const [SearchQuery2, setSearchQuery2] = React.useState('')
   const [disabled, setDisabled] = React.useState(false)
   const [clients, setClients] = React.useState<Array<Client>>([])
   const [companies, setCompanies] = React.useState<Array<Company>>([])
@@ -241,6 +242,9 @@ function ClientsPage() {
     console.log(contract)
     return contract
   }
+  const filteredCompanies = companies.filter(company =>
+    company.name.toLowerCase().startsWith(SearchQuery2.toLowerCase())
+  )
   return (
     <div className='flex justify-start items-start w-full h-full flex-col overflow-y-scroll'>
       <div className='flex justify-between items-start  w-full'>
@@ -259,15 +263,20 @@ function ClientsPage() {
               <input value={client.name} placeholder="Client Name *" onChange={(e)=>{handleInputChange(e, 'name')}} required={true} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl text-black p-2 mr-1 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
               <input value={client.cr} placeholder="Client CR No* " onChange={(e)=>{handleInputChange(e, 'cr')}} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl ml-1 text-black p-2 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
             </div>
-            <div className={`w-full`} onClick={toggleOpen}>
-              <summary className="btn bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl text-black p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 text-start focus:opacity-100 hover:bg-tertiary" onClick={toggleOpen}>{dropdownText}</summary>
-              <ul className={`${open ? " flex mt-2 bg-tertiary shadow menu dropdown-content z-[1] rounded-box w-full border-2 border-main font-bold text-black" : 'hidden' }`}>
-                {
-                  companies.map((company, index) => (
-                    <li key={index} onClick={()=>{setOpen(false); setDropdownText(company.name); handleDropdownChange(company.cr, 'companyCr')}} tabIndex={index} className="transition duration-500 rounded-xl hover:text-black hover:bg-bg"><a>{company.name}</a></li>
-                  ))
-                }
-              </ul>
+            <div className={`w-full`} onClick={() => { setOpen(!open) }}>
+              <input 
+                type="text" 
+                placeholder={dropdownText}
+                className="p-3 border-b-2 border-tertiary bg-tertiary focus:outline-none focus:border-bg w-full bg-bg mt-2 placeholder-black text-black transition duration-500 hover:cursor-pointer hover:opacity-50 rounded-xl active:cursor-text active:opacity-100 focus:cursor-text focus:opacity-100 focus:outline-none" 
+                onChange={(e)=>{setSearchQuery2(e.target.value)}}
+              />
+              <div className={`${open ? "flex mt-2 bg-tertiary shadow menu dropdown-content z-[1] rounded-box overflow-y-auto max-h-[200px] w-full border-2 border-main font-bold text-black" : 'hidden'}`}>
+                <ul>
+                  {filteredCompanies.map((company, index) => (
+                    <li key={index} onClick={() => { setOpen(false); setDropdownText(company.name); handleDropdownChange(company.cr, 'companyCr') }} tabIndex={index} className="transition w-full duration-500 rounded-xl hover:text-black hover:bg-bg"><a>{company.name}</a></li>
+                  ))}
+                </ul>
+              </div>
             </div>
             <input value={client.address} placeholder="Address *" onChange={(e)=>{handleInputChange(e, 'address')}} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl  text-black p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
             <div className="w-full justify-between items-center flex">
