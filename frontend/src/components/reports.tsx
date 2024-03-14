@@ -65,7 +65,7 @@ function ReportsPage() {
     switch(type) {
       case 'client':
         const clientReq = await axios.get(`${serverUri}/api/clients/fetch/specific?token=${localStorage.getItem('token')}&id=${localClientId}`)
-        const reportReq = await axios.get(`${serverUri}/api/reports/fetch?token=${localStorage.getItem('token')}&type=${type}&key=${localClientId}`)
+        const reportReq = await axios.get(`${serverUri}/api/reports/fetch?token=${localStorage.getItem('token')}&type=${type}&key=${localClientId}&dateto=${dates.to}&datefrom=${dates.from}`)
         if(clientReq.data.code == 200 && reportReq.data.code == 200) {
           setLocalClient(clientReq.data.data)
           setLocalContracts(reportReq.data.data)
@@ -85,13 +85,34 @@ function ReportsPage() {
         } else setDisabled(false)
         break
       case 'overall':
-        const reportOReq = await axios.get(`${serverUri}/api/reports/fetch?token=${localStorage.getItem('token')}&type=${type}&key=none`)
+        const reportOReq = await axios.get(`${serverUri}/api/reports/fetch?token=${localStorage.getItem('token')}&type=${type}&key=none&dateto=${dates.to}&datefrom=${dates.from}`)
         if(reportOReq.data.code == 200) {
           setLocalContracts(reportOReq.data.data)
           setPage('overall')
           setDisabled(false)
         } else setDisabled(false)
     }
+  }
+  const getTotalIncome = (type: 'unpaid' | 'paid' | 'income', contract: Contract) => {
+    let totalIncome = 0
+    switch (type) {
+      case 'paid':
+        contract.installments.map((installment) => {
+          if(installment.paid) totalIncome += installment.amount
+        })
+        break
+      case 'unpaid':
+        contract.installments.map((installment) => {
+          if(!installment.paid) totalIncome += installment.amount
+        })
+        break
+      case 'income':
+        contract.installments.map((installment) => {
+          if(installment.paid) totalIncome += (installment.amount * contract.percentage)/100
+        })
+        break
+    }
+    return totalIncome
   }
   const getTotalIncomes = (type: 'unpaid' | 'paid' | 'income') => {
     let totalIncome = 0
@@ -138,7 +159,13 @@ function ReportsPage() {
   return (
     <div className='overflow-y-auto w-full'>
       {page == 'default' ? 
-      <><div className='bg-main w-full p-8 rounded-xl flex flex-row items-center justify-between'>
+      <>
+        <div className='bg-main w-full p-8 rounded-xl flex flex-row items-center justify-center'>
+          <input placeholder={`Date From*`} value={dates.from} onChange={handleDateFromChange} className={`mr-4 bg-bg border-[1px] border-bg placeholder-black rounded-xl  text-black p-3 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100 ${disabled ? 'pointer-events-none opacity-50 cursor-not-allowed' : ''}`} type="date" aria-label='Date From'></input>
+          <h1 className='text-5xl text-black'>-</h1>
+          <input placeholder={`Date To *`} value={dates.to} id="dateToInput" onChange={handleDateToChange} className={`ml-4 bg-bg border-[1px] border-bg placeholder-black rounded-xl  text-black p-3 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100 ${disabled ? 'pointer-events-none opacity-50 cursor-not-allowed' : ''}`} type="date"></input>
+        </div>
+        <div className='bg-main w-full p-8 rounded-xl flex flex-row items-center justify-between mt-8'>
           <h1 className='font-bold text-3xl'>Client Wise Report</h1>
           <div className='w-72 flex justify-center items-center h-full flex-col'>
             <div className={`w-full`} onClick={() => { setOpen2(!open2) } }>
@@ -152,27 +179,27 @@ function ReportsPage() {
             <button onClick={() => { setDisabled(true); handleGeneration('client')}} className={`w-full bg-bg rounded-xl border-[1px] border-main p-2 mt-2 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent ${disabled || localClientId == '' ? 'pointer-events-none opacity-50 cursor-not-allowed' : ''}`}>Generate</button>
           </div>
         </div>
-          <div className='bg-main w-full p-8 rounded-xl flex flex-row items-center justify-between mt-8'>
-            <h1 className='font-bold text-3xl'>Company Wise Report</h1>
-            <div className='w-72 flex justify-center items-center h-full flex-col'>
-              <div className={`w-full`} onClick={() => { setOpen(!open) } }>
-                <summary className={`btn bg-bg border-[1px] border-bg placeholder-black rounded-xl text-black p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 text-start focus:opacity-100 hover:bg-bg  ${disabled ? 'pointer-events-none opacity-50 cursor-not-allowed' : ''}`} onClick={() => { setOpen(!open) } }>{dropdownText}</summary>
-                <ul className={`${open ? " flex mt-2 bg-bg shadow menu dropdown-content z-[1] rounded-box w-full border-2 border-main font-bold text-black" : 'hidden'}`}>
-                  {companies.map((company, index) => (
-                    <li key={index} onClick={() => { setOpen(false); setDropdownText(company.name); setlocalCompanyId(company.cr) } } tabIndex={index} className="transition duration-500 rounded-xl hover:text-black hover:bg-tertiary"><a>{company.name}</a></li>
-                  ))}
-                </ul>
-              </div>
-              <input placeholder={`Date From*`} onChange={handleDateFromChange} className='bg-bg border-[1px] border-bg placeholder-black rounded-xl  text-black p-3 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100' type="date" aria-label='Date From'></input>
-              <input placeholder={`Date To *`} id="dateToInput" onChange={handleDateToChange} className='bg-bg border-[1px] border-bg placeholder-black rounded-xl  text-black p-3 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100' type="date"></input>
-              <button onClick={() => { setDisabled(true); handleGeneration('company')}} className={`w-full bg-bg rounded-xl border-[1px] border-main p-2 mt-2 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent ${disabled || localCompanyId == '' ? 'pointer-events-none opacity-50 cursor-not-allowed' : ''}`}>Generate</button>
+        <div className='bg-main w-full p-8 rounded-xl flex flex-row items-center justify-between mt-8'>
+          <h1 className='font-bold text-3xl'>Company Wise Report</h1>
+          <div className='w-72 flex justify-center items-center h-full flex-col'>
+            <div className={`w-full`} onClick={() => { setOpen(!open) } }>
+              <summary className={`btn bg-bg border-[1px] border-bg placeholder-black rounded-xl text-black p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 text-start focus:opacity-100 hover:bg-bg  ${disabled ? 'pointer-events-none opacity-50 cursor-not-allowed' : ''}`} onClick={() => { setOpen(!open) } }>{dropdownText}</summary>
+              <ul className={`${open ? " flex mt-2 bg-bg shadow menu dropdown-content z-[1] rounded-box w-full border-2 border-main font-bold text-black" : 'hidden'}`}>
+                {companies.map((company, index) => (
+                  <li key={index} onClick={() => { setOpen(false); setDropdownText(company.name); setlocalCompanyId(company.cr) } } tabIndex={index} className="transition duration-500 rounded-xl hover:text-black hover:bg-tertiary"><a>{company.name}</a></li>
+                ))}
+              </ul>
             </div>
-          </div><div className='bg-main w-full p-8 rounded-xl flex flex-row items-center justify-between mt-8'>
-            <h1 className='font-bold text-3xl'>Overall Report</h1>
-            <div className='w-72 flex justify-center items-center h-full flex-col'>
-              <button onClick={() => { setDisabled(true); handleGeneration('overall') } } className={`w-full bg-bg rounded-xl border-[1px] border-main p-2 mt-2 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent ${disabled ? 'pointer-events-none opacity-50 cursor-not-allowed' : ''}`}>Generate</button>
-            </div>
-          </div></>
+            <button onClick={() => { setDisabled(true); handleGeneration('company')}} className={`w-full bg-bg rounded-xl border-[1px] border-main p-2 mt-2 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent ${disabled || localCompanyId == '' ? 'pointer-events-none opacity-50 cursor-not-allowed' : ''}`}>Generate</button>
+          </div>
+        </div>
+        <div className='bg-main w-full p-8 rounded-xl flex flex-row items-center justify-between mt-8'>
+          <h1 className='font-bold text-3xl'>Overall Report</h1>
+          <div className='w-72 flex justify-center items-center h-full flex-col'>
+            <button onClick={() => { setDisabled(true); handleGeneration('overall') } } className={`w-full bg-bg rounded-xl border-[1px] border-main p-2 mt-2 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent ${disabled ? 'pointer-events-none opacity-50 cursor-not-allowed' : ''}`}>Generate</button>
+          </div>
+        </div>
+      </>
       :
       page == 'client' ?
         <div>
@@ -195,40 +222,33 @@ function ReportsPage() {
             </div>
           </div>
           <div>
-            {localContracts.map((contract, index) => (
-              <div key={index} className='flex flex-row border-4 border-main rounded-xl w-full mt-4 p-8 flex-row'>
-                <div className='w-3/12'>
-                  <h1 className='font-bold mb-2'>{contract.id}</h1>
-                  <h1 className=''><span className='font-bold'>Description : </span>{contract.description}</h1>
-                  <h1 className=''><span className='font-bold'>Commission : </span>{contract.percentage}</h1>
-                  <h1 className=''><span className='font-bold'>Deadline : </span>{contract.date}</h1>
-                  <h1 className=''><span className='font-bold'>Amount : </span>{contract.amount} OMR</h1>
-                </div>
-                <div className='flex-col flex justify-center items-center w-9/12'>
-                  <h1 className='text-3xl font-bold'>Installments</h1>
-                  <table className="table text-black w-full">
-                    <thead>
-                      <tr className="text-black">
-                        <th>Index</th>
-                        <th>Amount</th>
-                        <th>Date</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="overflow-y-scroll overflow-x-visible w-full">
-                      {contract.installments.length > 0 ? contract.installments.map((installment, index) => (
-                        <tr tabIndex={index} className={`w-full ${installment.paid ? 'bg-green-300 rounded' : 'bg-red-300 rounded'}`} key={index}>
-                          <th className="whitespace-nowrap">{index}</th>
-                          <td>{installment.amount} OMR</td>
-                          <td>{installment.date}</td>
-                          <td>{installment.paid ? 'Paid' : 'Unpaid'}</td>
-                        </tr>
-                      )) : ''}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            ))}
+          <table className="table text-black" style={{ maxWidth: '100%' }}>
+            {/* head */}
+            <thead>
+              <tr className="text-black">
+                <th>SR No.</th>
+                <th>Date</th>
+                <th>Contract ID</th>
+                <th>Total Amount</th>
+                <th>Paid Amount</th>
+                <th>Balance</th>
+                <th>Commission</th>
+              </tr>
+            </thead>
+            <tbody className="overflow-y-scroll overflow-x-visible w-full">
+              {localContracts.map((contract, index) => (
+                <tr tabIndex={index + 1} className="w-full" key={contract.id}>
+                  <th className="whitespace-nowrap">{index+1}</th>
+                  <td>{contract.date}</td>
+                  <td>{contract.id}</td>
+                  <td>{contract.amount}</td>
+                  <td>{getTotalIncome('paid', contract)}</td>
+                  <td>{getTotalIncome('unpaid', contract)}</td>
+                  <td>{getTotalIncome('income', contract)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
           </div>
           <button onClick={()=>{setPage('default')}} className={`w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent mb-12`}>Return</button>
         </div> 
@@ -237,7 +257,7 @@ function ReportsPage() {
         <div>
           <div className='flex justify-between items-start'>
             <div>
-              <h1 className='text-3xl font-bold'>Company #{localCompanyId} Report</h1>
+              <h1 className='text-3xl font-bold'>Company {localCompany.name} Report</h1>
               <h1 className='mt-2 text-md font-bold'>Date: <span className='font-normal'>{Date()}</span></h1>
               <h1><span className='font-bold'>Paid Debt: </span>{getTotalIncomes('paid')} OMR</h1>
               <h1><span className='font-bold'>Unpaid Debt: </span>{getTotalIncomes('unpaid')} OMR</h1>
@@ -252,42 +272,35 @@ function ReportsPage() {
               <h1><span className='font-bold'>Contact Number </span>: {localCompany.contact.number}</h1>
             </div>
           </div>
-          <div>
-            {localContracts.map((contract, index) => (
-              <div key={index} className='flex flex-row border-4 border-main rounded-xl w-full mt-4 p-8 flex-row'>
-                <div className='w-3/12'>
-                  <h1 className='font-bold mb-2'>{contract.id}</h1>
-                  <h1 className=''><span className='font-bold'>Description : </span>{contract.description}</h1>
-                  <h1 className=''><span className='font-bold'>Commission : </span>{contract.percentage}</h1>
-                  <h1 className=''><span className='font-bold'>Deadline : </span>{contract.date}</h1>
-                  <h1 className=''><span className='font-bold'>Amount : </span>{contract.amount} OMR</h1>
-                </div>
-                <div className='flex-col flex justify-center items-center w-9/12'>
-                  <h1 className='text-3xl font-bold'>Installments</h1>
-                  <table className="table text-black w-full">
-                    <thead>
-                      <tr className="text-black">
-                        <th>Index</th>
-                        <th>Amount</th>
-                        <th>Date</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="overflow-y-scroll overflow-x-visible w-full">
-                      {contract.installments.length > 0 ? contract.installments.map((installment, index) => (
-                        <tr tabIndex={index} className={`w-full ${installment.paid ? 'bg-green-300 rounded' : 'bg-red-300 rounded'}`} key={index}>
-                          <th className="whitespace-nowrap">{index}</th>
-                          <td>{installment.amount} OMR</td>
-                          <td>{installment.date}</td>
-                          <td>{installment.paid ? 'Paid' : 'Unpaid'}</td>
-                        </tr>
-                      )) : ''}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            ))}
-          </div>
+          <table className="table text-black" style={{ maxWidth: '100%' }}>
+            {/* head */}
+            <thead>
+              <tr className="text-black">
+                <th>SR No.</th>
+                <th>Date</th>
+                <th>Contract ID</th>
+                <th>Client ID</th>
+                <th>Total Amount</th>
+                <th>Paid Amount</th>
+                <th>Balance</th>
+                <th>Commission</th>
+              </tr>
+            </thead>
+            <tbody className="overflow-y-scroll overflow-x-visible w-full">
+              {localContracts.map((contract, index) => (
+                <tr tabIndex={index + 1} className="w-full" key={contract.id}>
+                  <th className="whitespace-nowrap">{index+1}</th>
+                  <td>{contract.date}</td>
+                  <td>{contract.id}</td>
+                  <td>{contract.clientId}</td>
+                  <td>{contract.amount}</td>
+                  <td>{getTotalIncome('paid', contract)}</td>
+                  <td>{getTotalIncome('unpaid', contract)}</td>
+                  <td>{getTotalIncome('income', contract)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
           <button onClick={()=>{setPage('default')}} className={`w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent mb-12`}>Return</button>
         </div>
       :
@@ -302,42 +315,37 @@ function ReportsPage() {
             <h1><span className='font-bold'>Income: </span>{getTotalIncomes('income')} OMR</h1>
           </div>
         </div>
-        <div>
-          {localContracts.map((contract, index) => (
-            <div key={index} className='flex flex-row border-4 border-main rounded-xl w-full mt-4 p-8 flex-row'>
-              <div className='w-3/12'>
-                <h1 className='font-bold mb-2'>{contract.id}</h1>
-                <h1 className=''><span className='font-bold'>Description : </span>{contract.description}</h1>
-                <h1 className=''><span className='font-bold'>Commission : </span>{contract.percentage}</h1>
-                <h1 className=''><span className='font-bold'>Deadline : </span>{contract.date}</h1>
-                <h1 className=''><span className='font-bold'>Amount : </span>{contract.amount} OMR</h1>
-              </div>
-              <div className='flex-col flex justify-center items-center w-9/12'>
-                <h1 className='text-3xl font-bold'>Installments</h1>
-                <table className="table text-black w-full">
-                  <thead>
-                    <tr className="text-black">
-                      <th>Index</th>
-                      <th>Amount</th>
-                      <th>Date</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="overflow-y-scroll overflow-x-visible w-full">
-                    {contract.installments.length > 0 ? contract.installments.map((installment, index) => (
-                      <tr tabIndex={index} className={`w-full ${installment.paid ? 'bg-green-300 rounded' : 'bg-red-300 rounded'}`} key={index}>
-                        <th className="whitespace-nowrap">{index}</th>
-                        <td>{installment.amount} OMR</td>
-                        <td>{installment.date}</td>
-                        <td>{installment.paid ? 'Paid' : 'Unpaid'}</td>
-                      </tr>
-                    )) : ''}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          ))}
-        </div>
+          <table className="table text-black" style={{ maxWidth: '100%' }}>
+            {/* head */}
+            <thead>
+              <tr className="text-black">
+                <th>SR No.</th>
+                <th>Date</th>
+                <th>Company CR</th>
+                <th>Client ID</th>
+                <th>Contract ID</th>
+                <th>Total Amount</th>
+                <th>Paid Amount</th>
+                <th>Balance</th>
+                <th>Commission</th>
+              </tr>
+            </thead>
+            <tbody className="overflow-y-scroll overflow-x-visible w-full">
+              {localContracts.map((contract, index) => (
+                <tr tabIndex={index + 1} className="w-full" key={contract.id}>
+                  <th className="whitespace-nowrap">{index+1}</th>
+                  <td>{contract.date}</td>
+                  <td>{contract.companyCr}</td>
+                  <td>{contract.clientId}</td>
+                  <td>{contract.id}</td>
+                  <td>{contract.amount}</td>
+                  <td>{getTotalIncome('paid', contract)}</td>
+                  <td>{getTotalIncome('unpaid', contract)}</td>
+                  <td>{getTotalIncome('income', contract)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
           <button onClick={()=>{setPage('default')}} className={`w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent mb-12`}>Return</button>
       </div>
       :

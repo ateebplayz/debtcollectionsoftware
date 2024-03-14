@@ -6,6 +6,7 @@ import { User } from "./user.js"
 import { generateTenDigitString } from "../modules/helpers.js"
 import Contract from "../schemas/contract.js"
 import cors from "cors"
+import Installment from "../schemas/installment.js"
 
 const router = express.Router()
 router.use(express.json())
@@ -167,39 +168,44 @@ router.get("/fetch/specific", async (req, res) => {
         if (verified) {
             if (data.requirement == '10d' || data.requirement == 'today' || data.requirement == 'overdue') {
                 const contracts = await collections.contracts.find().toArray();
-                let returnContracts: Array<{contract: Contract, time: number}> = [];
-        
+                let returnContracts: Array<{contract: Contract, time: number, installment: {installment: Installment, index: number}}> = [];
                 contracts.forEach((contract, index) => {
-                    let timeDifference = Date.parse(contract.date) - Date.now()
-                    let timeRemaining = Math.ceil(timeDifference / (1000 * 60 * 60 * 24))
-                    switch(data.requirement) {
-                        case '10d':
-                            if(timeRemaining <= 10 && timeRemaining >= 1) {
-                                returnContracts.push({
-                                    contract: contract,
-                                    time: timeRemaining
-                                })
+                    contract.installments.map((installment, index) => {
+                        if(!installment.paid) {
+                            let timeDifference = Date.parse(installment.date) - Date.now()
+                            let timeRemaining = Math.ceil(timeDifference / (1000 * 60 * 60 * 24))
+                            switch(data.requirement) {
+                                case '10d':
+                                    if(timeRemaining <= 10 && timeRemaining >= 1) {
+                                        returnContracts.push({
+                                            contract: contract,
+                                            time: timeRemaining,
+                                            installment: {installment: installment, index: index}
+                                        })
+                                    }
+                                    break
+                                case 'today':
+                                    if(timeRemaining == 0) {
+                                        returnContracts.push({
+                                            contract: contract,
+                                            time: timeRemaining,
+                                            installment: {installment: installment, index: index}
+                                        })
+                                    }
+                                    break
+                                case 'overdue':
+                                    if(timeRemaining < 0) {
+                                        returnContracts.push({
+                                            contract: contract,
+                                            time: timeRemaining,
+                                            installment: {installment: installment, index: index}
+                                        })
+                                    }
+                                    break
                             }
-                            break
-                        case 'today':
-                            if(timeRemaining == 0) {
-                                returnContracts.push({
-                                    contract: contract,
-                                    time: timeRemaining
-                                })
-                            }
-                            break
-                        case 'overdue':
-                            if(timeRemaining < 0) {
-                                returnContracts.push({
-                                    contract: contract,
-                                    time: timeRemaining
-                                })
-                            }
-                            break
-                    }
+                        }
+                    })
                 })
-        
                 return res.json({ data: returnContracts, code: 200 });
             } else {
                 return res.json({ error: 'Invalid requirement/none found. Accepted terms are 10d, today, overdue', code: 200 });

@@ -10,11 +10,12 @@ import { ApexOptions } from 'apexcharts';
 import Contract from '@/schemas/contract';
 import axios from 'axios';
 import { serverUri } from '@/data';
+import Installment from '@/schemas/installment';
 
 function HomePage() {
-  const [overdue, setOverdue] = React.useState<Array<{contract: Contract,time: number}>>([])
-  const [today, setToday] = React.useState<Array<{contract: Contract,time: number}>>([])
-  const [ten, setTen] = React.useState<Array<{contract: Contract,time: number}>>([])
+  const [overdue, setOverdue] = React.useState<Array<{contract: Contract, time: number, installment: {installment: Installment, index: number}}>>([])
+  const [today, setToday] = React.useState<Array<{contract: Contract, time: number, installment: {installment: Installment, index: number}}>>([])
+  const [ten, setTen] = React.useState<Array<{contract: Contract, time: number, installment: {installment: Installment, index: number}}>>([])
 
   const fetchContracts = async () => {
     const overDueResp = await axios.get(`${serverUri}/api/contracts/fetch/specific?token=${localStorage.getItem('token')}&requirement=overdue`)
@@ -34,15 +35,16 @@ function HomePage() {
     <div className='flex flex-col justify-start items-center flex-col pt-0 overflow-y-auto w-full pr-8'>
       <div className='flex justify-start items-center flex-col w-full'>
         <div className='p-0 flex justify-start items-center flex-col w-full'>
-          <h1 className='font-roboto-bold text-3xl w-full text-start'>Overdue</h1>
-          <div className='bg-red-200 mt-6 p-12 border-4 border-red-500 rounded-xl w-full'>
+          <h1 className='font-roboto-bold text-3xl w-full text-start'>Overdue Installments</h1>
+          <div className='bg-red-200 mt-6 p-2 py-6 border-4 border-red-500 rounded-xl w-full'>
             {overdue.length > 0 ? 
               <table className="table table-large" style={{ maxWidth: '100%' }}>
                 <thead>
                   <tr className='text-red-500 text-lg'>
-                    <th>ID</th>
+                    <th>Contract ID</th>
+                    <th>Index</th>
                     <th>Days Left</th>
-                    <th>Contract Amount</th>
+                    <th>Amount</th>
                     <th>Company Cr</th>
                     <th>Client ID</th>
                     <th>Commission %</th>
@@ -50,32 +52,34 @@ function HomePage() {
                 </thead>
                 <tbody className="overflow-y-scroll overflow-x-visible w-full">
                   {
-                  overdue.map((contract, index) => (
+                  overdue.map((overdue, index) => (
                     <tr tabIndex={index} className="w-full text-red-500" key={index}>
-                      <th className="whitespace-nowrap">{contract.contract.id}</th>
-                      <th className="whitespace-nowrap">{contract.time}</th>
-                      <th className="whitespace-nowrap">{contract.contract.amount} OMR</th>
-                      <th className="whitespace-nowrap">{contract.contract.companyCr}</th>
-                      <th className="whitespace-nowrap">{contract.contract.clientId}</th>
-                      <th className="whitespace-nowrap">{contract.contract.percentage}</th>
+                      <th className="whitespace-nowrap">{overdue.contract.id}</th>
+                      <th className="whitespace-nowrap">{overdue.installment.index + 1}</th>
+                      <th className="whitespace-nowrap">{overdue.time}</th>
+                      <th className="whitespace-nowrap">{overdue.contract.amount} OMR</th>
+                      <th className="whitespace-nowrap">{overdue.contract.companyCr}</th>
+                      <th className="whitespace-nowrap">{overdue.contract.clientId}</th>
+                      <th className="whitespace-nowrap">{overdue.contract.percentage}</th>
                     </tr>
                     ))
                   }
                 </tbody>
-              </table> : <p className='text-red-500 w-full text-center font-bold'>No Contracts Overdue</p>
+              </table> : <p className='text-red-500 w-full text-center font-bold'>No Installments Overdue</p>
             }
           </div>
         </div>
         <div className='p-0 flex justify-start items-center flex-col w-full mt-8'>
-          <h1 className='font-roboto-bold text-3xl w-full text-start'>Today&lsquo;s Contracts</h1>
-          <div className='bg-amber-100 mt-6 p-12 border-4 border-amber-500 rounded-xl w-full'>
+          <h1 className='font-roboto-bold text-3xl w-full text-start'>Today&lsquo;s Installments</h1>
+          <div className='bg-amber-100 mt-6 p-2 py-6 border-4 border-amber-500 rounded-xl w-full'>
             {today.length > 0 ? 
               <table className="table table-large" style={{ maxWidth: '100%' }}>
                 <thead>
                   <tr className='text-amber-500 text-lg'>
-                    <th>ID</th>
+                    <th>Contract ID</th>
+                    <th>Index</th>
                     <th>Days Left</th>
-                    <th>Contract Amount</th>
+                    <th>Amount</th>
                     <th>Company Cr</th>
                     <th>Client ID</th>
                     <th>Commission %</th>
@@ -86,6 +90,7 @@ function HomePage() {
                   today.map((contract, index) => (
                     <tr tabIndex={index} className="w-full text-amber-500" key={index}>
                       <th className="whitespace-nowrap">{contract.contract.id}</th>
+                      <th className="whitespace-nowrap">{contract.installment.index + 1}</th>
                       <th className="whitespace-nowrap">{contract.time}</th>
                       <th className="whitespace-nowrap">{contract.contract.amount} OMR</th>
                       <th className="whitespace-nowrap">{contract.contract.companyCr}</th>
@@ -95,20 +100,21 @@ function HomePage() {
                     ))
                   }
                 </tbody>
-              </table> : <p className='text-amber-500 w-full text-center font-bold'>No Contracts due Today</p>
+              </table> : <p className='text-amber-500 w-full text-center font-bold'>No Installments due Today</p>
             }
           </div>
         </div>
         <div className='p-0 flex justify-start items-center flex-col w-full mt-8'>
-          <h1 className='font-roboto-bold text-3xl w-full text-start'>Near due date Contracts</h1>
-          <div className='bg-green-100 mt-6 p-12 border-4 border-green-500 rounded-xl w-full'>
+          <h1 className='font-roboto-bold text-3xl w-full text-start'>Near due date Installments</h1>
+          <div className='bg-green-100 mt-6 p-2 py-6 border-4 border-green-500 rounded-xl w-full'>
             {ten.length > 0 ? 
               <table className="table table-large" style={{ maxWidth: '100%' }}>
                 <thead>
                   <tr className='text-green-500 text-lg'>
-                    <th>ID</th>
+                    <th>Contract ID</th>
+                    <th>Index</th>
                     <th>Days Left</th>
-                    <th>Contract Amount</th>
+                    <th>Amount</th>
                     <th>Company Cr</th>
                     <th>Client ID</th>
                     <th>Commission %</th>
@@ -119,6 +125,7 @@ function HomePage() {
                   ten.map((contract, index) => (
                     <tr tabIndex={index} className="w-full text-green-500" key={index}>
                       <th className="whitespace-nowrap">{contract.contract.id}</th>
+                      <th className="whitespace-nowrap">{contract.installment.index + 1}</th>
                       <th className="whitespace-nowrap">{contract.time}</th>
                       <th className="whitespace-nowrap">{contract.contract.amount} OMR</th>
                       <th className="whitespace-nowrap">{contract.contract.companyCr}</th>
@@ -128,7 +135,7 @@ function HomePage() {
                     ))
                   }
                 </tbody>
-              </table> : <p className='text-green-500 font-bold w-full text-center'>No Contracts due within 10 days</p>
+              </table> : <p className='text-green-500 font-bold w-full text-center'>No Installments due within 10 days</p>
             }
           </div>
         </div>

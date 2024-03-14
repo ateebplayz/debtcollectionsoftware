@@ -13,6 +13,7 @@ router.use(cors())
 
 router.get("/fetch", async (req, res) => {
     const data = req.query as { token: string, type: 'client' | 'company' | 'overall', key: string, dateto: string, datefrom: string }
+    console.log(data.datefrom, data.dateto)
     try {
         const token = data.token
         if (!token) {
@@ -29,10 +30,21 @@ router.get("/fetch", async (req, res) => {
                     let dataArr: Array<Contract> = []
                     switch (data.type) {
                         case 'client':
-                            dataArr = await collections.foreverContracts.find({ clientId: data.key }).toArray()
+                            if (data.datefrom !== '00-00-0000' && data.dateto !== '00-00-0000') {
+                                dataArr = await collections.foreverContracts.find({
+                                    clientId: data.key,
+                                    date: { $gte: data.datefrom, $lte: data.dateto }
+                                }).toArray()
+                            } else if (data.datefrom !== '00-00-0000') {
+                                dataArr = await collections.foreverContracts.find({
+                                    clientId: data.key,
+                                    date: { $gte: data.datefrom }
+                                }).toArray()
+                            } else {
+                                dataArr = await collections.foreverContracts.find({ clientId: data.key }).toArray()
+                            }
                             break
                         case 'company':
-                            if (!data.token) return res.json({ error: 'Invalid Type entered, please use either client company or overall' })
                             if (data.datefrom !== '00-00-0000' && data.dateto !== '00-00-0000') {
                                 dataArr = await collections.foreverContracts.find({
                                     companyCr: data.key,
@@ -48,9 +60,20 @@ router.get("/fetch", async (req, res) => {
                             }
                             break
                         case 'overall':
-                            dataArr = await collections.foreverContracts.find().toArray()
+                            if (data.datefrom !== '00-00-0000' && data.dateto !== '00-00-0000') {
+                                dataArr = await collections.foreverContracts.find({
+                                    date: { $gte: data.datefrom, $lte: data.dateto }
+                                }).toArray()
+                            } else if (data.datefrom !== '00-00-0000') {
+                                dataArr = await collections.foreverContracts.find({
+                                    date: { $gte: data.datefrom }
+                                }).toArray()
+                            } else {
+                                dataArr = await collections.foreverContracts.find().toArray()
+                            }
                             break
                     }
+                    if (!data.type) return res.json({ error: 'Invalid Type entered, please use either client company or overall' })
                     return res.json({ data: dataArr, code: 200 })
                 } else return res.json({ error: 'Invalid type provided. Must be either `client` or `company`', code: 402 })
             }

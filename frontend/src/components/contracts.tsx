@@ -13,6 +13,14 @@ function sleep (ms: number) {
   return new Promise((res) => setTimeout(res, ms))
 }
 function ContractsPage() {
+  const timestamp = Date.now();
+  const date = new Date(timestamp)
+
+  const year = date.getFullYear()
+  const month = ('0' + (date.getMonth() + 1)).slice(-2)
+  const day = ('0' + date.getDate()).slice(-2)
+
+  const formattedDate = `${year}-${month}-${day}`
   const [totalInstallmentAmount, setTotalInstallmentAmount] = React.useState(0)
   const [installments, setInstallments] = React.useState<Array<Installment>>([]) 
   const [open, setOpen] = React.useState(false)
@@ -41,7 +49,7 @@ function ContractsPage() {
     clientId: '',
     id: '',
     installments: [],
-    date: '',
+    date: formattedDate,
     amount: 0,
     description: '',
     percentage: 0,
@@ -235,7 +243,6 @@ function ContractsPage() {
               <input placeholder="Amount *" type="number" onChange={(e)=>{handleInputChange(e, 'amount')}} required={true} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl text-black p-2 mr-1 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
               <input placeholder="Percentage *" step="0.01" type="number" onChange={(e)=>{handleInputChange(e, 'percentage')}} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl ml-1 text-black p-2 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
             </div>
-            <input placeholder="Deadline *"  formEncType="multipart/form-data" onChange={(e)=>{handleInputChange(e, 'date')}} type="date" className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl text-black p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
             <button onClick={()=>(document.getElementById('installment_modal') as HTMLDialogElement)?.showModal()} className={`bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl text-black p-2 w-full mt-3 border-none transition duration-300 ${!disabled2 ? 'hover:cursor-pointer hover:opacity-75 focus:outline-none focus:scale-105 focus:opacity-100' : ' pointer-events-none cursor-not-allowed hover:cursor-not-allowed opacity-50'}`}>{disabled2 ? 'Please insert an amount' : installments.length < 0 ? 'Configure Installments' : 'Total Installments Configured : ' + installments.length}</button>
             <button onClick={handleCreation} className={`w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent ${disabled ? 'pointer-events-none opacity-50 cursor-not-allowed' : ''}`}>Add Contract</button>
             <button className={`w-full bg-transparent rounded p-2 mt-4 text-black transition duration-300 hover:scale-105 font-bold border-[1px] border-black ${disabled ? 'pointer-events-none opacity-50 cursor-not-allowed' : ''}`} onClick={()=>{handleBtnClicks(1)}}>Cancel</button>
