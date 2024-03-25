@@ -28,6 +28,6 @@ app.use("/api/contracts", contractsRoute);
 app.use("/api/installments", installmentsRoute);
 app.use("/api/reports", reportsRoute);
 
-app.listen(9090, () => {
-	console.log('Server started on port 9090');
+app.listen(9091, () => {
+	console.log('Server started on port 9091');
 });
