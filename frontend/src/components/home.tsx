@@ -57,7 +57,7 @@ function HomePage() {
                       <th className="whitespace-nowrap">{overdue.contract.id}</th>
                       <th className="whitespace-nowrap">{overdue.installment.index + 1}</th>
                       <th className="whitespace-nowrap">{overdue.time}</th>
-                      <th className="whitespace-nowrap">{overdue.contract.amount} OMR</th>
+                      <th className="whitespace-nowrap">{overdue.installment.installment.amount} OMR</th>
                       <th className="whitespace-nowrap">{overdue.contract.companyCr}</th>
                       <th className="whitespace-nowrap">{overdue.contract.clientId}</th>
                       <th className="whitespace-nowrap">{overdue.contract.percentage}</th>
@@ -92,7 +92,7 @@ function HomePage() {
                       <th className="whitespace-nowrap">{contract.contract.id}</th>
                       <th className="whitespace-nowrap">{contract.installment.index + 1}</th>
                       <th className="whitespace-nowrap">{contract.time}</th>
-                      <th className="whitespace-nowrap">{contract.contract.amount} OMR</th>
+                      <th className="whitespace-nowrap">{contract.installment.installment.amount} OMR</th>
                       <th className="whitespace-nowrap">{contract.contract.companyCr}</th>
                       <th className="whitespace-nowrap">{contract.contract.clientId}</th>
                       <th className="whitespace-nowrap">{contract.contract.percentage}</th>
@@ -127,7 +127,7 @@ function HomePage() {
                       <th className="whitespace-nowrap">{contract.contract.id}</th>
                       <th className="whitespace-nowrap">{contract.installment.index + 1}</th>
                       <th className="whitespace-nowrap">{contract.time}</th>
-                      <th className="whitespace-nowrap">{contract.contract.amount} OMR</th>
+                      <th className="whitespace-nowrap">{contract.installment.installment.amount} OMR</th>
                       <th className="whitespace-nowrap">{contract.contract.companyCr}</th>
                       <th className="whitespace-nowrap">{contract.contract.clientId}</th>
                       <th className="whitespace-nowrap">{contract.contract.percentage}</th>

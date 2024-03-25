@@ -27,7 +27,7 @@ export default function Home() {
   }, [])
   return (
     <div className="w-full bg-main min-h-screen flex flex-row items-center text-black">
-      <div className="flex w-3/12 h-[calc(100vh-4rem)] items-center pt-8 mx-8 rounded-xl bg-bg flex-col overflow-y-auto">
+      <div className="flex max-w-[20%] w-[20%] h-[calc(100vh-4rem)] items-center pt-8 mx-8 rounded-xl bg-bg flex-col overflow-y-auto">
         <div className="mb-0 px-6 mt-4">
           <img src="https://i.imgur.com/gXf4S0G.png"/>
         </div>

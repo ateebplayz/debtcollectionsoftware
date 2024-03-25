@@ -15,7 +15,6 @@ function ClientsPage() {
   const [error, setError] = React.useState('')
   const fileInputRef = React.useRef<HTMLInputElement>(null)
   const [open, setOpen] = React.useState(false)
-  const [dropdownText, setDropdownText] = React.useState('Company *')
   const [SearchQuery2, setSearchQuery2] = React.useState('')
   const [disabled, setDisabled] = React.useState(false)
   const [clients, setClients] = React.useState<Array<Client>>([])
@@ -266,14 +265,15 @@ function ClientsPage() {
             <div className={`w-full`} onClick={() => { setOpen(!open) }}>
               <input 
                 type="text" 
-                placeholder={dropdownText}
+                value={SearchQuery2}
+                placeholder="Company *"
                 className="p-3 border-b-2 border-tertiary bg-tertiary focus:outline-none focus:border-bg w-full bg-bg mt-2 placeholder-black text-black transition duration-500 hover:cursor-pointer hover:opacity-50 rounded-xl active:cursor-text active:opacity-100 focus:cursor-text focus:opacity-100 focus:outline-none" 
                 onChange={(e)=>{setSearchQuery2(e.target.value)}}
               />
               <div className={`${open ? "flex mt-2 bg-tertiary shadow menu dropdown-content z-[1] rounded-box overflow-y-auto max-h-[200px] w-full border-2 border-main font-bold text-black" : 'hidden'}`}>
                 <ul>
                   {filteredCompanies.map((company, index) => (
-                    <li key={index} onClick={() => { setOpen(false); setDropdownText(company.name); handleDropdownChange(company.cr, 'companyCr') }} tabIndex={index} className="transition w-full duration-500 rounded-xl hover:text-black hover:bg-bg"><a>{company.name}</a></li>
+                    <li key={index} onClick={() => { setOpen(false); setSearchQuery2(company.name); handleDropdownChange(company.cr, 'companyCr') }} tabIndex={index} className="transition w-full duration-500 rounded-xl hover:text-black hover:bg-bg"><a>{company.name}</a></li>
                   ))}
                 </ul>
               </div>

@@ -12,6 +12,16 @@ import { serverUri } from "@/data"
 function sleep (ms: number) {
   return new Promise((res) => setTimeout(res, ms))
 }
+function formatDate(date: Date) {
+  var year = date.getFullYear();
+  var month = ('0' + (date.getMonth() + 1)).slice(-2); // Adding 1 because getMonth() returns zero-based index
+  var day = ('0' + date.getDate()).slice(-2);
+  
+  // Concatenate the parts in the desired format
+  var formattedDate = year + '-' + month + '-' + day;
+  
+  return formattedDate;
+}
 function ContractsPage() {
   const timestamp = Date.now();
   const date = new Date(timestamp)
@@ -25,8 +35,6 @@ function ContractsPage() {
   const [installments, setInstallments] = React.useState<Array<Installment>>([]) 
   const [open, setOpen] = React.useState(false)
   const [open2, setOpen2] = React.useState(false)
-  const [dropdownText, setDropdownText] = React.useState('Company *')
-  const [dropdownText2, setDropdownText2] = React.useState('Client *')
   const [SearchQuery1, setSearchQuery1] = React.useState('')
   const [SearchQuery2, setSearchQuery2] = React.useState('')
   const [disabled2, setDisabled2] = React.useState(true)
@@ -86,8 +94,8 @@ function ContractsPage() {
         tempContract.date = e.target.value
         break
       case 'amount':
-        if(!isNaN(parseInt(e.target.value))) {
-          if(parseInt(e.target.value) > 0) {
+        if(!isNaN(parseFloat(e.target.value))) {
+          if(parseFloat(e.target.value) > 0) {
             setDisabled2(false)
           } else {
             setDisabled2(true)
@@ -101,8 +109,8 @@ function ContractsPage() {
         tempContract.description = e.target.value
         break
       case 'percentage':
-        if(!isNaN(parseInt(e.target.value))) {
-          tempContract.percentage = parseInt(e.target.value)
+        if(!isNaN(parseFloat(e.target.value))) {
+          tempContract.percentage = parseFloat(e.target.value)
         }
         break
     }
@@ -175,7 +183,7 @@ function ContractsPage() {
   }
   const handleInstallmentChange = (index:number, value: string, type: 'amount' | 'date') => {
     let oldElement = installments[index]
-    let exVal = parseInt(value)
+    let exVal = parseFloat(value)
 
     switch (type) {
       case 'amount':
@@ -232,6 +240,14 @@ function ContractsPage() {
   const filteredCompanies = companies.filter(company =>
     company.name.toLowerCase().startsWith(SearchQuery2.toLowerCase())
   )
+  const filteredClients = fetchLocalClients(contract.companyCr).filter(client => 
+    client.name.toLowerCase().startsWith(SearchQuery1.toLowerCase())  
+  )
+  const isDateUnselected = () => {
+    let val = false
+    installments.forEach((installment) => installment.date == '' ? val = true : '')
+    return val
+  }
   return (
     <div className='flex justify-start items-start max-w-full h-full flex-col overflow-y-scroll'>
       <div className='flex justify-between items-start  w-full'>
@@ -243,25 +259,34 @@ function ContractsPage() {
             <p className="py-4">You must fill out all the fields.</p>
             <div className={`w-full`} onClick={() => { setOpen(!open) }}>
               <input 
-                type="text" 
-                placeholder={dropdownText}
+                type="text"
+                placeholder="Company *"
+                value={SearchQuery2}
                 className="p-3 border-b-2 border-tertiary bg-tertiary focus:outline-none focus:border-bg w-full bg-bg mt-2 placeholder-black text-black transition duration-500 hover:cursor-pointer hover:opacity-50 rounded-xl active:cursor-text active:opacity-100 focus:cursor-text focus:opacity-100 focus:outline-none" 
                 onChange={(e)=>{setSearchQuery2(e.target.value)}}
+                onClick={()=>{setOpen(true)}}
               />
               <div className={`${open ? "flex mt-2 bg-tertiary shadow menu dropdown-content z-[1] rounded-box overflow-y-auto max-h-[200px] w-full border-2 border-main font-bold text-black" : 'hidden'}`}>
                 <ul>
                   {filteredCompanies.map((company, index) => (
-                    <li key={index} onClick={() => { setOpen(false); setDropdownText(company.name); handleDropdownChange(company.cr, 'companyCr') }} tabIndex={index} className="transition w-full duration-500 rounded-xl hover:text-black hover:bg-bg"><a>{company.name}</a></li>
+                    <li key={index} onClick={() => { setOpen(false);setSearchQuery2(company.name); handleDropdownChange(company.cr, 'companyCr') }} tabIndex={index} className="transition w-full duration-500 rounded-xl hover:text-black hover:bg-bg"><a>{company.name}</a></li>
                   ))}
                 </ul>
               </div>
             </div>
             <div className={`w-full ${contract.companyCr == '' ? 'pointer-events-none opacity-50' : ''}`} onClick={toggleOpen2}>
-              <summary className="btn bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 text-start focus:opacity-100 hover:bg-tertiary text-black" onClick={toggleOpen2}>{dropdownText2}</summary>
+              <input 
+                type="text"
+                placeholder="Client *"
+                value={SearchQuery1}
+                className="p-3 border-b-2 border-tertiary bg-tertiary focus:outline-none focus:border-bg w-full bg-bg mt-2 placeholder-black text-black transition duration-500 hover:cursor-pointer hover:opacity-50 rounded-xl active:cursor-text active:opacity-100 focus:cursor-text focus:opacity-100 focus:outline-none" 
+                onChange={(e)=>{setSearchQuery1(e.target.value)}}
+                onClick={()=>{setOpen2(true)}}
+              />
               <ul className={`${open2 ? " flex mt-2 shadow menu dropdown-content z-[1] rounded-box w-full bg-tertiary border-2 border-bg font-bold text-black" : 'hidden' }`}>
                 {
-                  fetchLocalClients(contract.companyCr).map((client, index) => (
-                    <li key={index} onClick={()=>{setOpen(false); setDropdownText2(client.name); handleDropdownChange(client.id, 'clientId')}} tabIndex={index} className="transition duration-500 rounded-xl hover:bg-base-100 hover:bg-bg"><a>{client.name}</a></li>
+                  filteredClients.map((client, index) => (
+                    <li key={index} onClick={()=>{setOpen2(false); setSearchQuery1(client.name); handleDropdownChange(client.id, 'clientId')}} tabIndex={index} className="transition duration-500 rounded-xl hover:bg-base-100 hover:bg-bg"><a>{client.name}</a></li>
                   ))
                 }
               </ul>
@@ -280,7 +305,7 @@ function ContractsPage() {
           <div className="modal-box px-8 bg-bg">
             <h3 className="font-bold text-lg">Installments</h3>
             <p className="py-4">Create an Installment, or remove one by clicking on the buttons below! Make sure to not go over initial Amount</p>
-            <button className="bg-white rounded-xl p-2 text-black font-bold mr-2 transition duration-500 hover:scale-105 cursor-pointer active:scale-90" onClick={() => {let oldIns = installments;oldIns.push({amount: 0, date: Date(), paid: false}); setInstallments(oldIns); console.log(installments)}}>New Installment</button><button className="bg-white rounded-xl p-2 text-black font-bold ml-2 transition duration-500 hover:scale-105 cursor-pointer active:scale-90" onClick={() => {
+            <button className="bg-white rounded-xl p-2 text-black font-bold mr-2 transition duration-500 hover:scale-105 cursor-pointer active:scale-90" onClick={() => {let oldIns = installments;oldIns.push({amount: 0, date: '', paid: false}); setInstallments(oldIns); console.log(installments)}}>New Installment</button><button className="bg-white rounded-xl p-2 text-black font-bold ml-2 transition duration-500 hover:scale-105 cursor-pointer active:scale-90" onClick={() => {
                 let oldIns = installments;
                 if (oldIns.length > 0) {
                     oldIns.pop(); 
@@ -293,13 +318,13 @@ function ContractsPage() {
               installments.map((installment, index) => (
                 <div key={index} className="flex justify-center items-center w-full mt-4 flex-col">
                   <input type="number" placeholder={`Installment #${index + 1} Amount *`}onChange={(e)=>{handleInstallmentChange(index, e.target.value, 'amount')}} step="0.001" className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl  text-black p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
-                  <input min={new Date().toISOString().split('T')[0]} placeholder={`Installment #${index + 1} Deadline *`} onChange={(e)=>{handleInstallmentChange(index, e.target.value, 'date')}} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl  text-black p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100' type="date"></input>
+                  <input min={formatDate(new Date())} placeholder={`Installment #${index + 1} Deadline *`} onChange={(e)=>{handleInstallmentChange(index, e.target.value, 'date')}} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl  text-black p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100' type="date"></input>
                 </div>
               ))
             }
-            <h1 className="mt-6 text-sm">Total Contract Amount : {contract.amount}</h1>
+            <h1 className="mt-6 text-sm">Total Contract Amount : <span className="font-bold">{contract.amount}</span></h1>
             <h1 className="">Total Installment Amount : <span className={`${totalInstallmentAmount > contract.amount || totalInstallmentAmount < contract.amount ? 'text-red-500' : ''}`}>{totalInstallmentAmount} OMR</span></h1>
-            <button onClick={()=>{handleBtnClicks(2)}} className={`${totalInstallmentAmount > contract.amount || totalInstallmentAmount < contract.amount? 'pointer-events-none opacity-50' : ''} w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent`}>Submit</button>
+            <button onClick={()=>{handleBtnClicks(2)}} className={`${totalInstallmentAmount > contract.amount || totalInstallmentAmount < contract.amount || isDateUnselected() ? 'pointer-events-none opacity-50' : ''} w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent`}>Submit</button>
           </div>
         </dialog>
         <dialog id="contract_installments_modal" className={`modal ${shake ? 'animate-shake' : ''}`}>
