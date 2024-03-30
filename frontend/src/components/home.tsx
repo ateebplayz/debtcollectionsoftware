@@ -11,14 +11,17 @@ import Contract from '@/schemas/contract';
 import axios from 'axios';
 import { serverUri } from '@/data';
 import Installment from '@/schemas/installment';
+import { useRouter } from 'next/navigation';
 
 function HomePage() {
+  const router = useRouter()
   const [overdue, setOverdue] = React.useState<Array<{contract: Contract, time: number, installment: {installment: Installment, index: number}}>>([])
   const [today, setToday] = React.useState<Array<{contract: Contract, time: number, installment: {installment: Installment, index: number}}>>([])
   const [ten, setTen] = React.useState<Array<{contract: Contract, time: number, installment: {installment: Installment, index: number}}>>([])
 
   const fetchContracts = async () => {
     const overDueResp = await axios.get(`${serverUri}/api/contracts/fetch/specific?token=${localStorage.getItem('token')}&requirement=overdue`)
+    if(overDueResp.data.code !== 200) return router.push('/login')
     setOverdue(overDueResp.data.data)
     
     const todayResp = await axios.get(`${serverUri}/api/contracts/fetch/specific?token=${localStorage.getItem('token')}&requirement=today`)
