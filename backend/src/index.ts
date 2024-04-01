@@ -1,33 +1,40 @@
-import cors from 'cors';
-import express from 'express';
-import userRoute from './routes/user';
-import companyRoute from './routes/companies';
-import filesRoute from './routes/files';
+import cors from 'cors'
+import express from 'express'
+import userRoute from './routes/user'
+import companyRoute from './routes/companies'
+import filesRoute from './routes/files'
 import contractsRoute from './routes/contracts'
 import reportsRoute from './routes/reports'
-import clientsRoute from './routes/clients';
+import clientsRoute from './routes/clients'
 import installmentsRoute from './routes/installment'
-import { mongoClient } from './modules/mongo';
-import path from 'path';
+import { mongoClient } from './modules/mongo'
+import path from 'path'
+import https from 'https'
+import fs from 'fs'
 
 const app = express()
-app.use(cors());
+app.use(cors())
+
+const privateKey = fs.readFileSync('modules/private.key', 'utf8')
+const certificate = fs.readFileSync('modules/certificate.crt', 'utf8')
+const credentials = { key: privateKey, cert: certificate }
 
 mongoClient.connect().then(() => {
-    console.log('Connected to MongoDB');
-}).catch(console.log);
+    console.log('Connected to MongoDB')
+}).catch(console.log)
 
-// Serve static files from the 'uploads' directory
-app.use("/uploads", express.static(path.join(__dirname, '..', 'uploads')));
+app.use("/uploads", express.static(path.join(__dirname, '..', 'uploads')))
 
-app.use("/api/user", userRoute);
-app.use("/api/companies", companyRoute);
-app.use("/api/files", filesRoute);
-app.use("/api/clients", clientsRoute);
-app.use("/api/contracts", contractsRoute);
-app.use("/api/installments", installmentsRoute);
-app.use("/api/reports", reportsRoute);
+app.use("/api/user", userRoute)
+app.use("/api/companies", companyRoute)
+app.use("/api/files", filesRoute)
+app.use("/api/clients", clientsRoute)
+app.use("/api/contracts", contractsRoute)
+app.use("/api/installments", installmentsRoute)
+app.use("/api/reports", reportsRoute)
 
-app.listen(9091, () => {
-	console.log('Server started on port 9091');
-});
+const httpsServer = https.createServer(credentials, app)
+
+httpsServer.listen(9091, () => {
+    console.log('HTTPS Server started on port 9091')
+})
