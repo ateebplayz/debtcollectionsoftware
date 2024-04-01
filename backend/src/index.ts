@@ -15,8 +15,8 @@ import fs from 'fs'
 const app = express()
 app.use(cors())
 
-const privateKey = fs.readFileSync('modules/private.key', 'utf8')
-const certificate = fs.readFileSync('modules/certificate.crt', 'utf8')
+const privateKey = fs.readFileSync('./modules/private.key', 'utf8')
+const certificate = fs.readFileSync('./modules/certificate.crt', 'utf8')
 const credentials = { key: privateKey, cert: certificate }
 
 mongoClient.connect().then(() => {
