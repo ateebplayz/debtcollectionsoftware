@@ -41,7 +41,7 @@ function uploadFiles(req: Request, res: Response) {
 
   // Access the uploaded files
   const uploadedFiles = req.files as Express.Multer.File[]
-  res.json({ data: `http://${config.backendUri}/uploads/${uploadedFiles[0].filename}`, code: 200 });
+  res.json({ data: `${config.backendUri}uploads/${uploadedFiles[0].filename}`, code: 200 });
 }
 
 router.post('/upload', upload.array("files"), uploadFiles);
