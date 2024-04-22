@@ -7,6 +7,16 @@ import axios from "axios"
 import Client from "@/schemas/client"
 import { serverUri } from "@/data"
 import Contract from "@/schemas/contract"
+export function generateCustomString(): string {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+  let result = '';
+
+  for (let i = 0; i < 21; i++) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+
+  return result;
+}
 
 function sleep (ms: number) {
   return new Promise((res) => setTimeout(res, ms))
@@ -90,15 +100,23 @@ function ClientsPage() {
         break
       case 'attachment':
         if (e.target.files && e.target.files[0]) {
-          const selectedFile = e.target.files[0];
+          let selectedFile = e.target.files[0];
           const formData = new FormData();
-          formData.append("files", selectedFile);
-        
-          const response = await axios.post(`${serverUri}/api/files/upload`, formData)
-          console.log(response.data.data)
-          tempClient.attachment = response.data.data
+          
+          // Generate a random string for the filename
+          const randomString = generateCustomString();
+          // Create a new file object with the modified name
+          const modifiedFile = new File([selectedFile], `${randomString}.pdf`, { type: selectedFile.type });
+      
+          // Append the modified file to the FormData
+          formData.append("files", modifiedFile);
+      
+          const response = await axios.post(`${serverUri}/api/files/upload`, formData);
+          console.log(response.data.data);
+          tempClient.attachment = response.data.data;
         }
-        break
+        break;
+        
     }
     setClient(tempClient)
     console.log(client)
@@ -356,7 +374,7 @@ function ClientsPage() {
                   <td>{client.contact.number}</td>
                   <td><a onClick={()=>{(document.getElementById('client_address_modal') as HTMLDialogElement)?.showModal(); setLocalClient(client)}} className="underline cursor-pointer">View</a></td>
                   <td><a onClick={()=>{(document.getElementById('client_contracts_modal') as HTMLDialogElement)?.showModal(); setLocalClient(client)}} className="underline cursor-pointer">View</a></td>
-                  <td><a href={client.attachment} className="underline cursor-pointer">View</a></td>
+                  <td><p onClick={()=>{window.open(client.attachment)}} className="underline cursor-pointer">View</p></td>
                   <td><a onClick={()=>{setUpdatedClient(client);(document.getElementById('client_update_modal') as HTMLDialogElement).showModal()}} className="underline cursor-pointer transition duration-500 hover:opacity-50">Edit</a></td>
                 </tr>
               )) : ''}

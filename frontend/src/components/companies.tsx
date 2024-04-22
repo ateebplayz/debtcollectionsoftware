@@ -7,6 +7,16 @@ import Company from "../schemas/company"
 import axios from "axios"
 import Client from "../schemas/client"
 import { serverUri } from "@/data"
+export function generateCustomString(): string {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+  let result = '';
+
+  for (let i = 0; i < 21; i++) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+
+  return result;
+}
 
 function sleep (ms: number) {
   return new Promise((res) => setTimeout(res, ms))
@@ -72,15 +82,23 @@ function CompaniesPage() {
         break;
       case 'attachment':
         if (e.target.files && e.target.files[0]) {
-          const selectedFile = e.target.files[0];
+          let selectedFile = e.target.files[0];
           const formData = new FormData();
-          formData.append("files", selectedFile);
-        
+          
+          // Generate a random string for the filename
+          const randomString = generateCustomString();
+          // Create a new file object with the modified name
+          const modifiedFile = new File([selectedFile], `${randomString}.pdf`, { type: selectedFile.type });
+      
+          // Append the modified file to the FormData
+          formData.append("files", modifiedFile);
+      
           const response = await axios.post(`${serverUri}/api/files/upload`, formData);
           console.log(response.data.data);
           companyTemp.attachment = response.data.data;
         }
         break;
+          
     }
     setCompany(companyTemp); // Set the state using the modified copy
   };
@@ -302,7 +320,7 @@ function CompaniesPage() {
                   <td>{company.address}</td>
                   <td>{company.contact.number}</td>
                   <td><a onClick={()=>{(document.getElementById('company_client_modal') as HTMLDialogElement)?.showModal(); setLocalCompany(company)}} className="underline cursor-pointer">View</a></td>
-                  <td><a href={company.attachment} className="underline cursor-pointer">View</a></td>
+                  <td><p onClick={()=>{window.open(company.attachment)}} className="underline cursor-pointer">View</p></td>
                   <td><a onClick={()=>{setToUpdateCompany(company); (document.getElementById('company_update_modal') as HTMLDialogElement)?.showModal()}} className="underline cursor-pointer">Edit</a></td>
                 </tr>
               )) : ''}

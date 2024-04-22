@@ -1,4 +1,4 @@
-import { serverUri } from '@/data'
+import { getFormattedDate, serverUri } from '@/data'
 import Client from '@/schemas/client'
 import Company from '@/schemas/company'
 import Contract from '@/schemas/contract'
@@ -258,7 +258,7 @@ function ReportsPage() {
             <div className='flex justify-between items-start'>
               <div>
                 <h1 className='text-3xl font-bold'>Client {localClient.name} Report</h1>
-                <h1 className='mt-2 text-md font-bold'>Date: <span className='font-normal'>{Date()}</span></h1>
+                <h1 className='mt-2 text-md font-bold'>Date: <span className='font-normal'>{getFormattedDate()}</span></h1>
                 <h1><span className='font-bold'>Paid Debt: </span>{getTotalIncomes('paid')} OMR</h1>
                 <h1><span className='font-bold'>Unpaid Debt: </span>{getTotalIncomes('unpaid')} OMR</h1>
               </div>
@@ -324,7 +324,7 @@ function ReportsPage() {
             <div className='flex justify-between items-start'>
               <div>
                 <h1 className='text-3xl font-bold'>Company {localCompany.name} Report</h1>
-                <h1 className='mt-2 text-md font-bold'>Date: <span className='font-normal'>{Date()}</span></h1>
+                <h1 className='mt-2 text-md font-bold'>Date: <span className='font-normal'>{getFormattedDate()}</span></h1>
                 <h1><span className='font-bold'>Paid Debt: </span>{getTotalIncomes('paid')} OMR</h1>
                 <h1><span className='font-bold'>Unpaid Debt: </span>{getTotalIncomes('unpaid')} OMR</h1>
                 <h1><span className='font-bold'>Income: </span>{getTotalIncomes('income')} OMR</h1>
@@ -390,7 +390,7 @@ function ReportsPage() {
           <div className='flex justify-between items-start'>
             <div>
               <h1 className='text-3xl font-bold'>Overall Report</h1>
-              <h1 className='mt-2 text-md font-bold'>Date: <span className='font-normal'>{Date()}</span></h1>
+              <h1 className='mt-2 text-md font-bold'>Date: <span className='font-normal'>{getFormattedDate()}</span></h1>
               <h1><span className='font-bold'>Paid Debt: </span>{getTotalIncomes('paid')} OMR</h1>
               <h1><span className='font-bold'>Unpaid Debt: </span>{getTotalIncomes('unpaid')} OMR</h1>
               <h1><span className='font-bold'>Income: </span>{getTotalIncomes('income')} OMR</h1>

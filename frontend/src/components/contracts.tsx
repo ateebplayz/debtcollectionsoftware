@@ -110,7 +110,8 @@ function ContractsPage() {
         break
       case 'percentage':
         if(!isNaN(parseFloat(e.target.value))) {
-          tempContract.percentage = parseFloat(e.target.value)
+          if(parseFloat(e.target.value) > 100) { setShake(true)}
+          else {setShake(false); tempContract.percentage = parseFloat(e.target.value)}
         }
         break
     }
@@ -294,7 +295,7 @@ function ContractsPage() {
             <input placeholder="Description *" onChange={(e)=>{handleInputChange(e, 'description')}} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl  text-black p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
             <div className="w-full justify-between items-center flex">
               <input placeholder="Amount *" type="number" step="0.001" required={true} onChange={(e)=>{handleInputChange(e, 'amount')}} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl text-black p-2 mr-1 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
-              <input placeholder="Percentage *" step="0.01" type="number" onChange={(e)=>{handleInputChange(e, 'percentage')}} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl ml-1 text-black p-2 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
+              <input placeholder="Percentage *" max={100} maxLength={100} step="0.01" type="number" onChange={(e)=>{handleInputChange(e, 'percentage')}} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl ml-1 text-black p-2 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
             </div>
             <button onClick={()=>(document.getElementById('installment_modal') as HTMLDialogElement)?.showModal()} className={`bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl text-black p-2 w-full mt-3 border-none transition duration-300 ${!disabled2 ? 'hover:cursor-pointer hover:opacity-75 focus:outline-none focus:scale-105 focus:opacity-100' : ' pointer-events-none cursor-not-allowed hover:cursor-not-allowed opacity-50'}`}>{disabled2 ? 'Please insert an amount' : installments.length < 0 ? 'Configure Installments' : 'Total Installments Configured : ' + installments.length}</button>
             <button onClick={handleCreation} className={`w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent ${disabled ? 'pointer-events-none opacity-50 cursor-not-allowed' : ''}`}>Add Contract</button>
@@ -308,9 +309,9 @@ function ContractsPage() {
             <button className="bg-white rounded-xl p-2 text-black font-bold mr-2 transition duration-500 hover:scale-105 cursor-pointer active:scale-90" onClick={() => {let oldIns = installments;oldIns.push({amount: 0, date: '', paid: false}); setInstallments(oldIns); console.log(installments)}}>New Installment</button><button className="bg-white rounded-xl p-2 text-black font-bold ml-2 transition duration-500 hover:scale-105 cursor-pointer active:scale-90" onClick={() => {
                 let oldIns = installments;
                 if (oldIns.length > 0) {
+                    setTotalInstallmentAmount(totalInstallmentAmount - oldIns[oldIns.length - 1].amount);
                     oldIns.pop(); 
                     setInstallments(oldIns); 
-                    setTotalInstallmentAmount(totalInstallmentAmount - oldIns[oldIns.length - 1].amount);
                 }
             }}>Remove Installment</button>
 

@@ -8,9 +8,9 @@ import cors from 'cors'
 const upload = multer({ 
   dest: "uploads/",
   fileFilter: (req, file, callback) => {
-    // Only allow PDF files
-    if (!file.originalname.match(/\.(pdf)$/)) {
-      return callback(new Error('Only PDF files are allowed'));
+    // Allow all document types
+    if (!file.originalname.match(/\.(doc|docx|pdf|txt|png|jpg|jpeg)$/)) {
+      return callback(new Error('Only document files (doc, docx, pdf, txt) are allowed'));
     }
     callback(null, true);
   },
@@ -19,12 +19,14 @@ const upload = multer({
       callback(null, 'uploads/');
     },
     filename: (req, file, callback) => {
-      // Use the original filename with the .pdf extension
-      const pdfFilename = file.originalname.replace(/\.[^/.]+$/, "") + '.pdf';
-      callback(null, pdfFilename);
+      // Use the original filename with the appropriate extension
+      const extension = file.originalname.split('.').pop();
+      const filename = `${file.fieldname}-${Date.now()}.${extension}`;
+      callback(null, filename);
     }
   })
 });
+
 
 const router = express.Router();
 
