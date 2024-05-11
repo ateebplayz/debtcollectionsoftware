@@ -23,7 +23,7 @@ router.post("/create", async (req, res) => {
             if(!user) {
                 return res.json({error: 'Invalid Username/Password', code: 401})
             } else {
-                if(!companyData || !companyData.name || !companyData.cr || !companyData.address || !companyData.contact.number || !companyData.contact.person || !companyData.attachment || !companyData.clients || companyData.name == '' || companyData.cr == '' || companyData.address == '' || companyData.contact.number == '' || companyData.contact.person == '' || companyData.attachment == '') return res.json({error: 'Invalid Company Input', code: 404})
+                if(!companyData || !companyData.name || !companyData.cr || !companyData.address || !companyData.contact.number || !companyData.contact.person || !companyData.attachment || !companyData.clients || companyData.name == '' || companyData.cr == '' || companyData.address == '' || companyData.contact.number == '' || companyData.contact.person == '') return res.json({error: 'Invalid Company Input', code: 404})
                 const companyX = await collections.companies.findOne({cr: companyData.cr})
                 const clientX = await collections.clients.findOne({cr: companyData.cr})
                 const companyY = await collections.companies.findOne({contact: {number: companyData.contact.number}})

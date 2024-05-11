@@ -44,7 +44,7 @@ export default interface Company {
      * 
      * @example "Joe Smith"
      */
-    attachment: string,
+    attachment: Array<{name:string, value:string}>,
     /**
      * The unique 12 digit IDs of clients in an array
      * 

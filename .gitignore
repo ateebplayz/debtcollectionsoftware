@@ -7,3 +7,5 @@ frontend/node_modules
 node_modules
 backend/dist
 backend/src/config.ts
+backend/certificate.crt
+backend/private.key

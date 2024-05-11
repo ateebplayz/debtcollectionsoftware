@@ -110,8 +110,7 @@ function ContractsPage() {
         break
       case 'percentage':
         if(!isNaN(parseFloat(e.target.value))) {
-          if(parseFloat(e.target.value) > 100) { setShake(true)}
-          else {setShake(false); tempContract.percentage = parseFloat(e.target.value)}
+          tempContract.percentage = parseFloat(e.target.value)
         }
         break
     }
@@ -128,6 +127,13 @@ function ContractsPage() {
       }
       console.log(1, installments)
       console.log(contractWithInstallment)
+      if(contract.percentage > 100 || contractWithInstallment.installments.length < 1) {
+        setShake(true)
+        await sleep(500)
+        setShake(false)
+        setDisabled(false)
+        return
+      }
       const response = await axios.post(`${serverUri}/api/contracts/create`, {contract: contractWithInstallment, token: localStorage.getItem('token')})
       console.log(response.data)
       if(response.data.code == 200) {

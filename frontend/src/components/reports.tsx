@@ -29,7 +29,7 @@ function ReportsPage() {
         number: '',
         person: ''
     },
-    attachment: '',
+    attachment: [],
     contracts: []
   })
   const [localCompany, setLocalCompany] = React.useState<Company>({
@@ -40,7 +40,7 @@ function ReportsPage() {
       number: "",
       person: "",
     },
-    attachment: "",
+    attachment: [],
     clients: []
   })
 

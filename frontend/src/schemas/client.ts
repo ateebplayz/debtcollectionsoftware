@@ -50,7 +50,7 @@ export default interface Client {
 	/**
 	 * A document regarding the client
 	 */
-    attachment: string,
+    attachment: Array<{name:string, value:string}>,
 	/**
 	 * The contracts ID client is part of
 	 */

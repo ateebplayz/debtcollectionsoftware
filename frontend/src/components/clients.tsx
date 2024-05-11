@@ -41,9 +41,10 @@ function ClientsPage() {
         number: '',
         person: ''
     },
-    attachment: '',
+    attachment: [],
     contracts: []
   })
+  const [attachments, setAttachments] = React.useState<Array<{name: string, value: string}>>([])
   const [localClient, setLocalClient] = React.useState<Client>({
     cr: '',
     companyCr: '',
@@ -54,7 +55,7 @@ function ClientsPage() {
         number: '',
         person: ''
     },
-    attachment: '',
+    attachment: [],
     contracts: []
   })
   const [updatedClient, setUpdatedClient] = React.useState<Client>({
@@ -67,7 +68,7 @@ function ClientsPage() {
         number: '',
         person: ''
     },
-    attachment: '',
+    attachment: [],
     contracts: []
   })
   const handleDropdownChange = async (value: string, type: 'companyCr') => {
@@ -99,21 +100,30 @@ function ClientsPage() {
         tempClient.contact.person = e.target.value
         break
       case 'attachment':
-        if (e.target.files && e.target.files[0]) {
-          let selectedFile = e.target.files[0];
+        if (e.target.files && e.target.files.length > 0) {
           const formData = new FormData();
           
-          // Generate a random string for the filename
-          const randomString = generateCustomString();
-          // Create a new file object with the modified name
-          const modifiedFile = new File([selectedFile], `${randomString}.pdf`, { type: selectedFile.type });
-      
-          // Append the modified file to the FormData
-          formData.append("files", modifiedFile);
-      
-          const response = await axios.post(`${serverUri}/api/files/upload`, formData);
-          console.log(response.data.data);
-          tempClient.attachment = response.data.data;
+          // Loop through each selected file
+          for (let i = 0; i < e.target.files.length; i++) {
+            let selectedFile = e.target.files[i];
+            
+            // Generate a random string for the filename
+            const randomString = `${client.cr}-${i+1}`
+            // Create a new file object with the modified name
+            const modifiedFile = new File([selectedFile], `${randomString}.pdf`, { type: selectedFile.type });
+          
+            // Append the modified file to the FormData
+            formData.append("files", modifiedFile);
+          } 
+    
+          try {
+            const response = await axios.post(`${serverUri}/api/files/upload`, formData);
+            console.log(response.data.data);
+            tempClient.attachment = response.data.data
+          } catch (error) {
+            console.error("Error uploading files:", error);
+            // Handle error
+          }
         }
         break;
         
@@ -147,7 +157,9 @@ function ClientsPage() {
   const handleCreation = async () => {
     try {
       setDisabled(true)
-      const response = await axios.post(`${serverUri}/api/clients/create`, {client: client, token: localStorage.getItem('token')})
+      let clientT = {...client}
+      clientT.attachment = attachments
+      const response = await axios.post(`${serverUri}/api/clients/create`, {client: clientT, token: localStorage.getItem('token')})
       console.log(response.data)
       if(response.data.code == 200) {
         setError('')
@@ -162,11 +174,13 @@ function ClientsPage() {
               number: '',
               person: ''
           },
-          attachment: '',
+          attachment: [],
           contracts: []})
+          setAttachments([])
         if (fileInputRef.current) {
           fileInputRef.current.value = ''; // Clear the file input value
         }
+        
       } else {
         setError(response.data.error)
         setShake(true)
@@ -262,8 +276,99 @@ function ClientsPage() {
   const filteredCompanies = companies.filter(company =>
     company.name.toLowerCase().startsWith(SearchQuery2.toLowerCase())
   )
+  const areAttachmentsEmpty = () => {
+    let flag = true
+    attachments.map((a)=>{
+      if(a.name == '') flag=false
+      if(a.value == '') flag=false
+    })
+    return flag
+  }
+  const emptyAttachment = {
+    name: '',
+    value: ''
+  }
+  const incArray = () => {
+    let oldAttachments = [...attachments]
+    oldAttachments.push(emptyAttachment)
+    setAttachments(oldAttachments)
+  }
+  const decArray = () => {
+    let oldAttachments = [...attachments]
+    oldAttachments.pop()
+    setAttachments(oldAttachments)
+  }
+  const editArray = (index: number, type : 'Name' | 'Value', value: string) => {
+    let oldAttachments = [...attachments]
+    switch(type) {
+      case 'Name':
+        oldAttachments[index].name = value
+        break;
+      case 'Value':
+        oldAttachments[index].value = value
+        break;
+    }
+    setAttachments(oldAttachments)
+  }
+  const getFileLink = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    
+    if (e.target.files && e.target.files.length > 0) {
+      const formData = new FormData();
+      
+      // Loop through each selected file
+      for (let i = 0; i < e.target.files.length; i++) {
+        let selectedFile = e.target.files[i];
+        
+        // Generate a random string for the filename
+        const randomString = generateCustomString()
+        // Create a new file object with the modified name
+        const modifiedFile = new File([selectedFile], `${randomString}.pdf`, { type: selectedFile.type });
+      
+        // Append the modified file to the FormData with a unique key for each file
+        formData.append(`files`, modifiedFile);
+      }
+    
+      try {
+        const response = await axios.post(`${serverUri}/api/files/upload`, formData);
+        return response.data.data
+      } catch (error) {
+        console.error("Error uploading files:", error);
+        // Handle error
+      }
+    }
+  }
   return (
     <div className='flex justify-start items-start w-full h-full flex-col overflow-y-scroll'>
+    <dialog id="client_attachment_modal" className={`modal ${shake ? 'animate-shake' : ''}`}>
+      <div className="modal-box px-8 bg-bg">
+        <h3 className="font-bold text-lg">Attachments</h3>
+        <p className="">Add or Remove attachments with their respective buttons</p>
+        <div className='flex justify-start mt-0 items-start flex-row'>
+          <button onClick={()=>{incArray()}} className='bg-white p-2 mt-8 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent px-8 rounded-full'>Add</button>
+          <button onClick={()=>{decArray()}} className='bg-white ml-4 p-2 mt-8 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent px-8 rounded-full'>Remove</button>
+        </div>
+        {attachments.map((a, i) => (
+          <div key={i} className='flex flex-col justify-center items-center w-full mt-4 '>
+            <input value={a.name} placeholder={`Attachment ${i + 1} Name *`} onChange={(e)=>{editArray(i, 'Name', e.target.value)}} className='bg-tertiary border-[1px] placeholder-black border-tertiary rounded-xl  text-black p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
+            <input placeholder="Attachment *"  formEncType="multipart/form-data" onChange={async (e)=>{let fileLink = await getFileLink(e); editArray(i, 'Value', fileLink); console.log(attachments)}} type="file" accept=".pdf" className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl  text-black p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
+          </div>
+        ))}
+        <button onClick={() => {(document.getElementById('client_attachment_modal') as HTMLDialogElement).close()}} className={`w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent ${areAttachmentsEmpty() ? '' : 'cursor-not-allowed pointer-events-none opacity-50'}`}>Submit</button>
+      </div>
+    </dialog>
+    <dialog id="client_attachment_modal_view" className={`modal ${shake ? 'animate-shake' : ''}`}>
+      <div className="modal-box px-8 bg-bg">
+        <h3 className="font-bold text-lg">Attachments</h3>
+        <p className="">View attachments below</p>
+        {localClient.attachment.map((a, i) => (
+          <div key={i} className='flex flex-row justify-between items-center w-full mt-4 bg-tertiary border-[1px] placeholder-black border-tertiary rounded-xl  text-black p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'>
+            <h1>{a.name}</h1>
+            <h1 onClick={()=>{window.open(a.value)}}>View</h1>
+          </div>
+        ))}
+        <button onClick={() => {(document.getElementById('client_attachment_modal_view') as HTMLDialogElement).close()}} className={`w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent`}>Close</button>
+      </div>
+    </dialog>
       <div className='flex justify-between items-start  w-full'>
         <h1 className='text-3xl font-bold'>Clients</h1>
         <button className="flex justify-center items-center bg-tertiary rounded-xl text-black p-2 font-bold transition duration-500 hover:scale-125 hover:bg-transparent hover:text-black" onClick={()=>{(document.getElementById('client_modal') as HTMLDialogElement)?.showModal(); fetchData()}}><FaPlus size={18}/></button>
@@ -301,7 +406,7 @@ function ClientsPage() {
               <input value={client.contact.number} placeholder="Contact Number *" onChange={(e)=>{handleInputChange(e, 'contact number')}} required={true} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl text-black p-2 mr-1 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
               <input value={client.contact.person} placeholder="Contact Name *" onChange={(e)=>{handleInputChange(e, 'contact person')}} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl ml-1 text-black p-2 w-6/12 mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
             </div>
-            <input ref={fileInputRef} placeholder="Attachment *"  formEncType="multipart/form-data" onChange={(e)=>{handleInputChange(e, 'attachment')}} type="file" accept=".pdf" className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl  text-black p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
+            <button onClick={()=>{(document.getElementById('client_attachment_modal') as HTMLDialogElement).showModal()}} className='bg-tertiary border-[1px] placeholder-black border-tertiary rounded-xl text-black p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'>Attachments *</button>
             <button onClick={handleCreation} className={`w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent hover:text-black font-bold hover:scale-110 hover:border-transparent ${disabled ? 'pointer-events-none opacity-50 cursor-not-allowed' : ''}`}>Add Client</button>
             <button className={`w-full bg-transparent rounded p-2 mt-4 text-black transition duration-300 hover:scale-105 font-bold border-[1px] border-black ${disabled ? 'pointer-events-none opacity-50 cursor-not-allowed' : ''}`} onClick={()=>{handleBtnClicks(1)}}>Cancel</button>
           </div>
@@ -374,7 +479,7 @@ function ClientsPage() {
                   <td>{client.contact.number}</td>
                   <td><a onClick={()=>{(document.getElementById('client_address_modal') as HTMLDialogElement)?.showModal(); setLocalClient(client)}} className="underline cursor-pointer">View</a></td>
                   <td><a onClick={()=>{(document.getElementById('client_contracts_modal') as HTMLDialogElement)?.showModal(); setLocalClient(client)}} className="underline cursor-pointer">View</a></td>
-                  <td><p onClick={()=>{window.open(client.attachment)}} className="underline cursor-pointer">View</p></td>
+                  <td><p onClick={()=>{setLocalClient(client); (document.getElementById('client_attachment_modal_view') as HTMLDialogElement).showModal()}} className="underline cursor-pointer">View</p></td>
                   <td><a onClick={()=>{setUpdatedClient(client);(document.getElementById('client_update_modal') as HTMLDialogElement).showModal()}} className="underline cursor-pointer transition duration-500 hover:opacity-50">Edit</a></td>
                 </tr>
               )) : ''}
