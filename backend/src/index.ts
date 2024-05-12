@@ -35,6 +35,6 @@ app.use("/api/reports", reportsRoute)
 
 const httpsServer = https.createServer(credentials, app)
 
-app.listen(9091, () => {
+httpsServer.listen(9091, () => {
     console.log('HTTP Server started on port 9091')
 })
