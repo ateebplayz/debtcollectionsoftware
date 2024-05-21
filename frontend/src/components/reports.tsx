@@ -142,7 +142,7 @@ function ReportsPage() {
     }
     return totalIncome.toFixed(3)
   }
-  const getTotalIncomes = (type: 'unpaid' | 'paid' | 'income') => {
+  const getTotalIncomes = (type: 'unpaid' | 'paid' | 'income' | 'total') => {
     let totalIncome = 0
     switch (type) {
       case 'paid':
@@ -156,6 +156,13 @@ function ReportsPage() {
         localContracts.map((contract) => {
           contract.installments.map((installment) => {
             if(!installment.paid) totalIncome += installment.amount
+          })
+        })
+        break
+      case 'total': 
+        localContracts.map((contract) => {
+          contract.installments.map((installment) => {
+            totalIncome += installment.amount
           })
         })
         break
@@ -190,6 +197,42 @@ function ReportsPage() {
   const filteredCompanies = companies.filter(company =>
     company.name.toLowerCase().startsWith(SearchQuery2.toLowerCase())
   )
+  const getClientById = (clientId: string) => {
+    let client: Client = {
+      cr: '',
+      companyCr: '',
+      name: '',
+      id: '',
+      address: '',
+      contact: {
+          number: '',
+          person: ''
+      },
+      attachment: [],
+      contracts: []
+    }
+    clients.map((c)=>{
+      if (c.id == clientId) {client = c}
+    })
+    return client
+  }
+  const getCompanyByCr = (cr: string) => {
+    let company: Company = {
+      name: "",
+      cr: "",
+      address: "",
+      contact: {
+        number: "",
+        person: "",
+      },
+      attachment: [],
+      clients: []
+    }
+    companies.map(c=>{
+      if(c.cr == cr) company = c
+    })
+    return company
+  }
   return (
     <div className='overflow-y-auto w-full'>
       {page == 'default' ? 
@@ -257,20 +300,20 @@ function ReportsPage() {
           <div id='printable'>
             <div className='flex justify-between items-start'>
               <div>
-                <h1 className='text-3xl font-bold'>Client {localClient.name} Report</h1>
+                <h1 className='text-3xl font-bold'>{localClient.name}</h1>
                 <h1 className='mt-2 text-md font-bold'>Date: <span className='font-normal'>{getFormattedDate()}</span></h1>
-                <h1><span className='font-bold'>Paid Debt: </span>{getTotalIncomes('paid')} OMR</h1>
-                <h1><span className='font-bold'>Unpaid Debt: </span>{getTotalIncomes('unpaid')} OMR</h1>
+                <h1><span className='font-bold'>Total Amount: </span>{getTotalIncomes('total')} OMR</h1>
+                <h1><span className='font-bold'>Paid: </span>{getTotalIncomes('paid')} OMR</h1>
+                <h1><span className='font-bold'>Balance: </span>{getTotalIncomes('unpaid')} OMR</h1>
               </div>
               <div>
                 <h1 className='font-bold'>Client Details</h1>
-                <h1><span className='font-bold'>Name </span>: {localClient.name}</h1>
-                <h1><span className='font-bold'>ID </span>: {localClient.id}</h1>
-                <h1><span className='font-bold'>CR </span>: {localClient.cr}</h1>
-                <h1><span className='font-bold'>Company </span>: {localClient.companyCr}</h1>
-                <h1><span className='font-bold'>Address </span>: {localClient.address}</h1>
                 <h1><span className='font-bold'>Contact Name </span>: {localClient.contact.person}</h1>
                 <h1><span className='font-bold'>Contact Number </span>: {localClient.contact.number}</h1>
+                <h1><span className='font-bold'>CR </span>: {localClient.cr}</h1>
+                <h1><span className='font-bold'>Address </span>: {localClient.address}</h1>
+                <h1><span className='font-bold'>Name </span>: {localClient.name}</h1>
+                <h1><span className='font-bold'>Company CR </span>: {localClient.companyCr}</h1>
               </div>
             </div>
             <div>
@@ -280,11 +323,10 @@ function ReportsPage() {
                   <tr className="text-black">
                     <th>SR No.</th>
                     <th>Date</th>
-                    <th>Contract ID</th>
+                    <th>Contract</th>
                     <th>Total Amount</th>
                     <th>Paid Amount</th>
                     <th>Balance</th>
-                    <th>Commission</th>
                   </tr>
                 </thead>
                 <tbody className="overflow-y-scroll overflow-x-visible w-full">
@@ -292,11 +334,10 @@ function ReportsPage() {
                     <tr tabIndex={index + 1} className="w-full" key={contract.id}>
                       <th className="whitespace-nowrap">{index+1}</th>
                       <td>{contract.date}</td>
-                      <td>{contract.id}</td>
+                      <td>{contract.description}</td>
                       <td>{contract.amount.toFixed(3)}</td>
                       <td>{getTotalIncome('paid', contract)}</td>
-                      <td>{getTotalIncome('unpaid', contract)}</td>
-                      <td>{getTotalIncome('income', contract)}</td>
+                      <td>{getTotalIncome('unpaid', contract)}</td> 
                     </tr>
                   ))}
                   <tr className="w-full">
@@ -306,7 +347,6 @@ function ReportsPage() {
                     <td></td>
                     <td>{getTotalIncomes('paid')}</td>
                     <td>{getTotalIncomes('unpaid')}</td>
-                    <td>{getTotalIncomes('income')}</td>
                   </tr>
                 </tbody>
               </table>
@@ -323,19 +363,19 @@ function ReportsPage() {
           <div id='printable'>
             <div className='flex justify-between items-start'>
               <div>
-                <h1 className='text-3xl font-bold'>Company {localCompany.name} Report</h1>
+                <h1 className='text-3xl font-bold'>{localCompany.name}</h1>
                 <h1 className='mt-2 text-md font-bold'>Date: <span className='font-normal'>{getFormattedDate()}</span></h1>
-                <h1><span className='font-bold'>Paid Debt: </span>{getTotalIncomes('paid')} OMR</h1>
-                <h1><span className='font-bold'>Unpaid Debt: </span>{getTotalIncomes('unpaid')} OMR</h1>
-                <h1><span className='font-bold'>Income: </span>{getTotalIncomes('income')} OMR</h1>
+                <h1><span className='font-bold'>Total Amount: </span>{getTotalIncomes('total')} OMR</h1>
+                <h1><span className='font-bold'>Paid: </span>{getTotalIncomes('paid')} OMR</h1>
+                <h1><span className='font-bold'>Balance: </span>{getTotalIncomes('unpaid')} OMR</h1>
               </div>
               <div>
                 <h1 className='font-bold'>Company Details</h1>
                 <h1><span className='font-bold'>Name </span>: {localCompany.name}</h1>
                 <h1><span className='font-bold'>CR </span>: {localCompany.cr}</h1>
-                <h1><span className='font-bold'>Address </span>: {localCompany.address}</h1>
                 <h1><span className='font-bold'>Contact Name </span>: {localCompany.contact.person}</h1>
                 <h1><span className='font-bold'>Contact Number </span>: {localCompany.contact.number}</h1>
+                <h1><span className='font-bold'>Address </span>: {localCompany.address}</h1>
               </div>
             </div>
             <table className="table text-black" style={{ maxWidth: '100%' }}>
@@ -344,12 +384,10 @@ function ReportsPage() {
                 <tr className="text-black">
                   <th>SR No.</th>
                   <th>Date</th>
-                  <th>Contract ID</th>
-                  <th>Client ID</th>
+                  <th>Client Name</th>
                   <th>Total Amount</th>
                   <th>Paid Amount</th>
                   <th>Balance</th>
-                  <th>Commission</th>
                 </tr>
               </thead>
               <tbody className="overflow-y-scroll overflow-x-visible w-full">
@@ -357,12 +395,10 @@ function ReportsPage() {
                   <tr tabIndex={index + 1} className="w-full" key={contract.id}>
                     <th className="whitespace-nowrap">{index+1}</th>
                     <td>{contract.date}</td>
-                    <td>{contract.id}</td>
-                    <td>{contract.clientId}</td>
+                    <td>{getClientById(contract.clientId).name || ''}</td>
                     <td>{contract.amount.toFixed(3)}</td>
                     <td>{getTotalIncome('paid', contract)}</td>
                     <td>{getTotalIncome('unpaid', contract)}</td>
-                    <td>{getTotalIncome('income', contract)}</td>
                   </tr>
                 ))}
                 <tr className="w-full">
@@ -370,10 +406,8 @@ function ReportsPage() {
                   <td></td>
                   <td></td>
                   <td></td>
-                  <td></td>
                   <td>{getTotalIncomes('paid')}</td>
                   <td>{getTotalIncomes('unpaid')}</td>
-                  <td>{getTotalIncomes('income')}</td>
                 </tr>
               </tbody>
             </table>
@@ -391,9 +425,9 @@ function ReportsPage() {
             <div>
               <h1 className='text-3xl font-bold'>Overall Report</h1>
               <h1 className='mt-2 text-md font-bold'>Date: <span className='font-normal'>{getFormattedDate()}</span></h1>
+                <h1><span className='font-bold'>Total Amount: </span>{getTotalIncomes('total')} OMR</h1>
               <h1><span className='font-bold'>Paid Debt: </span>{getTotalIncomes('paid')} OMR</h1>
-              <h1><span className='font-bold'>Unpaid Debt: </span>{getTotalIncomes('unpaid')} OMR</h1>
-              <h1><span className='font-bold'>Income: </span>{getTotalIncomes('income')} OMR</h1>
+              <h1><span className='font-bold'>Balance: </span>{getTotalIncomes('unpaid')} OMR</h1>
             </div>
           </div>
           <table className="table text-black" style={{ maxWidth: '100%' }}>
@@ -402,9 +436,8 @@ function ReportsPage() {
               <tr className="text-black">
                 <th>SR No.</th>
                 <th>Date</th>
-                <th>Company CR</th>
-                <th>Client ID</th>
-                <th>Contract ID</th>
+                <th>Company Name</th>
+                <th>Client Name</th>
                 <th>Total Amount</th>
                 <th>Paid Amount</th>
                 <th>Balance</th>
@@ -416,9 +449,8 @@ function ReportsPage() {
                 <tr tabIndex={index + 1} className="w-full" key={contract.id}>
                   <th className="whitespace-nowrap">{index+1}</th>
                   <td>{contract.date}</td>
-                  <td>{contract.companyCr}</td>
-                  <td>{contract.clientId}</td>
-                  <td>{contract.id}</td>
+                  <td>{getCompanyByCr(contract.companyCr).name}</td>
+                  <td>{getClientById(contract.clientId).name}</td>
                   <td>{contract.amount.toFixed(3)}</td>
                   <td>{getTotalIncome('paid', contract)}</td>
                   <td>{getTotalIncome('unpaid', contract)}</td>
@@ -427,7 +459,6 @@ function ReportsPage() {
               ))}
               <tr className="w-full">
                 <th className="whitespace-nowrap"></th>
-                <td></td>
                 <td></td>
                 <td></td>
                 <td></td>

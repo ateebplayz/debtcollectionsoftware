@@ -58,6 +58,19 @@ function ClientsPage() {
     attachment: [],
     contracts: []
   })
+  const [attachmentClient, setAttachmentClient] = React.useState<Client>({
+    cr: '',
+    companyCr: '',
+    name: '',
+    id: '',
+    address: '',
+    contact: {
+        number: '',
+        person: ''
+    },
+    attachment: [],
+    contracts: []
+  })
   const [updatedClient, setUpdatedClient] = React.useState<Client>({
     cr: '',
     companyCr: '',
@@ -337,8 +350,37 @@ function ClientsPage() {
       }
     }
   }
+  const removeAttachmentWithIndex = (index: number) => {
+    let array = [...attachmentClient.attachment]
+    let filteredArray: Array<{name: string, value: string}> = []
+    array.map((a, i) => {
+      if(i !== index) filteredArray.push(a)
+    })
+    return filteredArray
+  }
+  const [localAttachment, sestLocalAttachment] = React.useState({name: '', value: ''})
   return (
     <div className='flex justify-start items-start w-full h-full flex-col overflow-y-scroll'>
+    <dialog id="client_attachment_modal_add" className={`modal ${shake ? 'animate-shake' : ''}`}>
+      <div className="modal-box px-8 bg-bg">
+        <h3 className="font-bold text-lg">Attachments addition</h3>
+        <p className="">Add an attachment</p>
+        <div className='flex justify-start mt-0 items-start flex-row'>
+          <div className='flex flex-col justify-center items-center w-full mt-4 '>
+            <input value={localAttachment.name} placeholder={`Attachment Name *`} onChange={(e)=>{sestLocalAttachment({...localAttachment, name: e.target.value})}} className='bg-tertiary border-[1px] placeholder-black border-tertiary rounded-xl  text-black p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
+            <input placeholder="Attachment *"  formEncType="multipart/form-data" onChange={async (e)=>{let fileLink = await getFileLink(e); sestLocalAttachment({...localAttachment, value: fileLink}) }} type="file" className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl  text-black p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'></input>
+          </div>
+        </div>
+        <button onClick={async () => {
+          let clientT = {...attachmentClient}
+          clientT.attachment.push(localAttachment)
+          setAttachmentClient(clientT);
+          setLocalClient(clientT);
+          await axios.post(`${serverUri}/api/clients/update`, {token: localStorage.getItem('token'), client: clientT})
+          window.location.reload()
+        }} className={`w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent ${localAttachment.name == '' || localAttachment.value == '' ? 'cursor-not-allowed pointer-events-none opacity-50' : ''}`}>Submit</button>
+      </div>
+    </dialog>
     <dialog id="client_attachment_modal" className={`modal ${shake ? 'animate-shake' : ''}`}>
       <div className="modal-box px-8 bg-bg">
         <h3 className="font-bold text-lg">Attachments</h3>
@@ -360,13 +402,23 @@ function ClientsPage() {
       <div className="modal-box px-8 bg-bg">
         <h3 className="font-bold text-lg">Attachments</h3>
         <p className="">View attachments below</p>
-        {localClient.attachment.map((a, i) => (
+        {attachmentClient.attachment.map((a, i) => (
           <div key={i} className='flex flex-row justify-between items-center w-full mt-4 bg-tertiary border-[1px] placeholder-black border-tertiary rounded-xl  text-black p-2 w-full mt-3 border-none transition duration-300 hover:cursor-pointer hover:opacity-75 focus:cursor-text focus:outline-none focus:scale-105 focus:opacity-100'>
             <h1>{a.name}</h1>
-            <h1 onClick={()=>{window.open(a.value)}}>View</h1>
+            <div className='h-full flex flex-row justify-center items-cennter'>
+                <h1 className='bg-white p-2 rounded-full px-4 transition duration-500 hover:opacity-50' onClick={async ()=>{
+                  let attachmentClientT = {...attachmentClient}
+                  attachmentClientT.attachment = removeAttachmentWithIndex(i)
+                  setAttachmentClient(attachmentClientT)
+                  setLocalClient(attachmentClientT)
+                  await axios.post(`${serverUri}/api/clients/update`, {token: localStorage.getItem('token'), client: attachmentClientT})
+                }}>Delete</h1>
+                <h1 className='p-2' onClick={()=>{window.open(a.value)}}>View</h1>
+              </div>
           </div>
         ))}
-        <button onClick={() => {(document.getElementById('client_attachment_modal_view') as HTMLDialogElement).close()}} className={`w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent`}>Close</button>
+        <button onClick={() => {(document.getElementById('client_attachment_modal_add') as HTMLDialogElement).showModal(); sestLocalAttachment({name: '', value: ''})}} className={`w-full bg-main rounded border-[1px] border-main p-2 mt-8 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent ${areAttachmentsEmpty() ? '' : 'cursor-not-allowed pointer-events-none opacity-50'}`}>Add New</button>
+        <button onClick={() => {(document.getElementById('client_attachment_modal_view') as HTMLDialogElement).close()}} className={`w-full bg-main rounded border-[1px] border-main p-2 mt-2 text-black transition duration-300 hover:bg-transparent font-bold hover:scale-110 hover:border-transparent`}>Close</button>
       </div>
     </dialog>
       <div className='flex justify-between items-start  w-full'>
@@ -425,7 +477,7 @@ function ClientsPage() {
             <div className="flex justify-center items-center flex-col">
                 {localClient.contracts.map((contract, index) => (
                   <div key={index} className='bg-tertiary border-[1px] border-tertiary placeholder-black rounded-xl text-black p-2 mt-3 border-none w-full'>
-                    <h1 className="text-black">{getContract(contract).id} ({getContract(contract).amount} OMR) [{getContract(contract).date}]</h1>
+                    <h1 className="text-black">{getContract(contract).amount} OMR [{getContract(contract).date}]</h1>
                   </div>
                 ))}
             </div>
@@ -479,7 +531,7 @@ function ClientsPage() {
                   <td>{client.contact.number}</td>
                   <td><a onClick={()=>{(document.getElementById('client_address_modal') as HTMLDialogElement)?.showModal(); setLocalClient(client)}} className="underline cursor-pointer">View</a></td>
                   <td><a onClick={()=>{(document.getElementById('client_contracts_modal') as HTMLDialogElement)?.showModal(); setLocalClient(client)}} className="underline cursor-pointer">View</a></td>
-                  <td><p onClick={()=>{setLocalClient(client); (document.getElementById('client_attachment_modal_view') as HTMLDialogElement).showModal()}} className="underline cursor-pointer">View</p></td>
+                  <td><p onClick={()=>{setAttachmentClient(client); (document.getElementById('client_attachment_modal_view') as HTMLDialogElement).showModal()}} className="underline cursor-pointer">View</p></td>
                   <td><a onClick={()=>{setUpdatedClient(client);(document.getElementById('client_update_modal') as HTMLDialogElement).showModal()}} className="underline cursor-pointer transition duration-500 hover:opacity-50">Edit</a></td>
                 </tr>
               )) : ''}

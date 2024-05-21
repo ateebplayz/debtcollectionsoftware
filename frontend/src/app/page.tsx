@@ -43,7 +43,7 @@ export default function Home() {
         <div className='flex mt-4 justify-center items-center bg-tertiary  p-2 rounded-xl cursor-pointer transition duration-300 hover:scale-110'>
           <MdLogout onClick={()=>{(document.getElementById('logout_modal') as HTMLDialogElement).showModal()}} size={24}/>
         </div>
-        <h1 className="mt-2 font-bold">v<span className="font-normal">1.0.6</span></h1>
+        <h1 className="mt-2 font-bold">v<span className="font-normal">1.0.7</span></h1>
       </div>
       <div className="flex w-9/12 h-[calc(100vh-4rem)] rounded-l-xl mr-8 bg-bg p-12">
         {
